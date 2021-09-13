@@ -1,0 +1,8 @@
+Package: com.nscake.pastie
+Name: Pastie
+Version: 0.0.1
+Architecture: iphoneos-arm
+Description: A usable clipboard manager.
+Maintainer: Tanner Bennett <thepantsthief@me.com>
+Author: Tanner Bennett <thepantsthief@me.com>
+Section: Tweaks
