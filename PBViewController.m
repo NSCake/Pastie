@@ -81,10 +81,15 @@ static BOOL PastieController_isPresented = NO;
         self.navigationItem.leftBarButtonItem.tintColor = UIColor.redColor;
     }
     
-//    self.navigationItem.searchController = [UISearchController new];
-//    self.navigationItem.searchController.searchResultsUpdater = self;
-//    self.navigationItem.searchController.automaticallyShowsCancelButton = YES;
+    UISearchController *searchController = [[UISearchController alloc] initWithSearchResultsController:nil];
+    searchController.searchResultsUpdater = self;
+    searchController.automaticallyShowsCancelButton = YES;
+    searchController.obscuresBackgroundDuringPresentation = NO;
+    searchController.hidesNavigationBarDuringPresentation = NO;
+    self.navigationItem.searchController = searchController;
     
+    self.tableView.automaticallyAdjustsScrollIndicatorInsets = NO;
+    self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
     [self.tableView registerClass:UITableViewCell.self forCellReuseIdentifier:kReuseID];
     [self reloadData];
 }
