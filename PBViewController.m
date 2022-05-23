@@ -38,11 +38,6 @@ static BOOL PastieController_isPresented = NO;
     PastieController_isPresented = isPresented;
 }
 
-- (void)viewDidDisappear:(BOOL)animated {
-    [super viewDidDisappear:animated];
-    self.view.window.hidden = YES;
-}
-
 @end
 
 @interface PBViewController () <UISearchControllerDelegate, UISearchResultsUpdating>
@@ -54,6 +49,8 @@ static BOOL PastieController_isPresented = NO;
 /// Filtered, or not, and drived from the strings property.
 @property (nonatomic, readonly) NSMutableArray<NSString *> *rows;
 @property (nonatomic) NSString *filterText;
+
+@property (nonatomic) UIWindow *window;
 @end
 
 @implementation PBViewController
@@ -88,6 +85,9 @@ static BOOL PastieController_isPresented = NO;
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     
+    self.window = self.view.window;
+    [self.window makeKeyWindow];
+    
     if (PDBManager.sharedManager.lastResult.isError) {
         UIAlertController *alert = [UIAlertController
             alertControllerWithTitle:@"Error"
@@ -104,6 +104,11 @@ static BOOL PastieController_isPresented = NO;
         
         [self presentViewController:alert animated:YES completion:nil];
     }
+}
+
+- (void)viewDidDisappear:(BOOL)animated {
+    [super viewDidDisappear:animated];
+    self.window.hidden = YES;
 }
 
 - (void)dismiss:(BOOL)paste {
