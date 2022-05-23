@@ -184,10 +184,14 @@ static BOOL PastieController_isPresented = NO;
 }
 
 - (void)reloadData {
-    self.strings = [PDBManager.sharedManager allStrings];
-    self.images = [PDBManager.sharedManager allImages];
+    [self softReloadData];
     // Reload data source and table view, preserving filter
     self.filterText = self.filterText;
+}
+
+- (void)softReloadData {
+    self.strings = [PDBManager.sharedManager allStrings];
+    self.images = [PDBManager.sharedManager allImages];
 }
 
 - (void)setFilterText:(NSString *)filterText {
@@ -241,10 +245,10 @@ static BOOL PastieController_isPresented = NO;
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle
 forRowAtIndexPath:(NSIndexPath *)indexPath {
     NSString *item = self.dataSource[indexPath.row];
-    [self.strings removeObject:item];
     [self.dataSource removeObjectAtIndex:indexPath.row];
     
     [PDBManager.sharedManager deleteString:item];
+    [self softReloadData];
     
     [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:0];
 }
