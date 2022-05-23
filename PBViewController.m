@@ -253,9 +253,12 @@ forRowAtIndexPath:(NSIndexPath *)indexPath {
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:kReuseID forIndexPath:indexPath];
-    cell.textLabel.text = self.dataSource[indexPath.row];
-    cell.textLabel.numberOfLines = 3;
+    cell.textLabel.numberOfLines = 4;
     cell.textLabel.font = [UIFont preferredFontForTextStyle:UIFontTextStyleSubheadline];
+    cell.textLabel.text = [self.dataSource[indexPath.row]
+        stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet
+    ];
+    
     return cell;
 }
 
