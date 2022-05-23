@@ -433,7 +433,7 @@ NSString * const kPDBListImages = @"SELECT id, imagePath FROM Paste WHERE imageP
 }
 
 - (NSMutableArray<NSString *> *)allImages {
-    return [self select:kPDBListImages];
+    return @[].mutableCopy; //[self select:kPDBListImages];
 }
 
 - (NSString *)pathForImageWithName:(NSString *)name {
