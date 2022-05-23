@@ -51,6 +51,7 @@ static BOOL PastieController_isPresented = NO;
 @property (nonatomic) NSString *filterText;
 
 @property (nonatomic) UIWindow *window;
+@property (nonatomic, readonly) UIMenu *moreMenu;
 @end
 
 @implementation PBViewController
@@ -59,13 +60,19 @@ static BOOL PastieController_isPresented = NO;
     [super viewDidLoad];
     
     self.title = @"Pastie";
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc]
-        initWithBarButtonSystemItem:UIBarButtonSystemItemDone
-        target:self action:@selector(dismiss:)
-    ];
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc]
         initWithBarButtonSystemItem:UIBarButtonSystemItemTrash
         target:self action:@selector(didPressTrash)
+    ];
+    self.navigationItem.rightBarButtonItems = @[
+        [[UIBarButtonItem alloc]
+            initWithBarButtonSystemItem:UIBarButtonSystemItemDone
+            target:self action:@selector(dismiss:)
+        ],
+        [[UIBarButtonItem alloc]
+            initWithImage:[UIImage systemImageNamed:@"ellipsis"]
+            menu:self.moreMenu
+        ]
     ];
     
     if (@available(iOS 13.0, *)) {
@@ -190,6 +197,27 @@ static BOOL PastieController_isPresented = NO;
     }
     
     [self.tableView reloadData];
+}
+
+#pragma mark Actions
+
+- (UIMenu *)moreMenu {
+    return [UIMenu menuWithChildren:@[
+        [UIAction actionWithTitle:@"Share Full History"
+                            image:[UIImage systemImageNamed:@"square.and.arrow.up"]
+                       identifier:nil
+                          handler:^(UIAction *action) {
+            [self shareFullDatabase];
+        }]
+    ]];
+}
+
+- (void)shareFullDatabase {
+    NSURL *filePath = [NSURL fileURLWithPath:PDBManager.sharedManager.databasePath];
+    UIActivityViewController *shareSheet = [[UIActivityViewController alloc]
+        initWithActivityItems:@[filePath] applicationActivities:nil
+    ];
+    [self presentViewController:shareSheet animated:YES completion:nil];
 }
 
 #pragma mark UITableViewDelegate
