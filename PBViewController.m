@@ -120,15 +120,31 @@ static BOOL PastieController_isPresented = NO;
 }
 
 - (void)didPressTrash {
+    BOOL filtering = self.filterText.length;
+    
+    NSString *title = filtering ?
+        @"Delete Search Results" : @"Clear History";
+    NSString *buttonTitle = filtering ?
+        @"Delete Results" : @"Clear History";
+    
     UIAlertController *alert = [UIAlertController
-        alertControllerWithTitle:@"Clear History"
+        alertControllerWithTitle:title
         message:@"Are you sure? This operation cannot be undone."
         preferredStyle:UIAlertControllerStyleAlert
     ];
-    [alert addAction:[UIAlertAction actionWithTitle:@"Clear History"
+    
+    NSArray *resultsToClear = filtering ? self.dataSource : nil;
+    
+    [alert addAction:[UIAlertAction actionWithTitle:buttonTitle
         style:UIAlertActionStyleDestructive
         handler:^(UIAlertAction *action) {
-            [PDBManager.sharedManager clearAllHistory];
+            if (resultsToClear) {
+                [PDBManager.sharedManager deleteStrings:resultsToClear];
+            } else {
+                [PDBManager.sharedManager clearAllHistory];
+            }
+        
+            [self reloadData];
         }
     ]];
     [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
@@ -158,8 +174,8 @@ static BOOL PastieController_isPresented = NO;
 - (void)reloadData {
     self.strings = [PDBManager.sharedManager allStrings];
     self.images = [PDBManager.sharedManager allImages];
-    self.dataSource = self.strings;
-    [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:0];
+    // Reload data source and table view, preserving filter
+    self.filterText = self.filterText;
 }
 
 - (void)setFilterText:(NSString *)filterText {
