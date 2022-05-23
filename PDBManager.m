@@ -306,6 +306,8 @@ NSString * const kPDBListImages = @"SELECT id, imagePath FROM Paste WHERE imageP
 
 #pragma mark Public
 
+- (NSString *)databasePath { return self.path; }
+
 - (BOOL)addStrings:(NSArray<NSString *> *)strings {
     if (!strings.count) return YES;
     

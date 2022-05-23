@@ -21,6 +21,8 @@
 
 @property (nonatomic) id lastCopy;
 
+@property (nonatomic, readonly) NSString *databasePath;
+
 - (BOOL)addStrings:(NSArray<NSString *> *)string;
 - (BOOL)addImages:(NSArray<UIImage *> *)image;
 
