@@ -8,6 +8,8 @@
 
 #import "Interfaces.h"
 
+static UIWindow *_pastieWindow = nil;
+
 /// Present the Pastie controller at half height
 %hook _UISheetPresentationController
 - (id)initWithPresentedViewController:(id)present presentingViewController:(id)presenter {
@@ -48,7 +50,9 @@ void ServerMain(CFMachPortRef port, LMMessage *message, CFIndex size, void *info
         // Show it from the banner window; the banner window is usually hidden,
         // so show it first. Pastie will hide it when it dismisses.
         SpringBoard *springboard = (id)UIApplication.sharedApplication;
-        UIWindow *window = springboard.bannerManager.bannerWindow; window.hidden = NO;
+        UIWindow *window = _pastieWindow; window.hidden = NO;
+        // window.rootViewController = [PastieController new];
+        // UIWindow *window = springboard.bannerManager.bannerWindow; window.hidden = NO;
         UIViewController *root = window.rootViewController;
         [root presentViewController:[PastieController new] animated:YES completion:nil];
     }
@@ -63,9 +67,14 @@ void ServerMain(CFMachPortRef port, LMMessage *message, CFIndex size, void *info
 %ctor {
     %init;
     
-    // Start LightMessaging server
     dispatch_async(dispatch_get_main_queue(), ^{
+        // Start LightMessaging server
         LMStartService(_kPackageName, CFRunLoopGetCurrent(), (CFMachPortCallBack)ServerMain);
+    
+        // Create pastie window
+        _pastieWindow = [[PastieWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
+        _pastieWindow.rootViewController = [UIViewController new];
+        _pastieWindow.rootViewController.view.userInteractionEnabled = NO;
     });
     
     // Observe pasteboard notifications

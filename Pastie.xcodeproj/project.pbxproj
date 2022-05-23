@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C3075B7A283C07D500A4E9A0 /* PastieWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = C3075B78283C07D500A4E9A0 /* PastieWindow.m */; };
 		C3A9A8FA264B6355008BA505 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = C3A9A8F9264B6355008BA505 /* AppDelegate.m */; };
 		C3A9A8FC264B6358008BA505 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C3A9A8FB264B6358008BA505 /* Assets.xcassets */; };
 		C3A9A8FF264B6358008BA505 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C3A9A8FD264B6358008BA505 /* LaunchScreen.storyboard */; };
@@ -19,6 +20,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		C3075B78283C07D500A4E9A0 /* PastieWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PastieWindow.m; sourceTree = SOURCE_ROOT; };
+		C3075B79283C07D500A4E9A0 /* PastieWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PastieWindow.h; sourceTree = SOURCE_ROOT; };
 		C3A9A8F5264B6355008BA505 /* Pastie.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Pastie.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C3A9A8F8264B6355008BA505 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		C3A9A8F9264B6355008BA505 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -71,6 +74,8 @@
 				C3A9A90F264B6397008BA505 /* Interfaces.h */,
 				C3A9A914264B6398008BA505 /* NSArray+Map.h */,
 				C3A9A90D264B6397008BA505 /* NSArray+Map.m */,
+				C3075B79283C07D500A4E9A0 /* PastieWindow.h */,
+				C3075B78283C07D500A4E9A0 /* PastieWindow.m */,
 				C3A9A90C264B6397008BA505 /* PBViewController.h */,
 				C3A9A910264B6397008BA505 /* PBViewController.m */,
 				C3A9A911264B6398008BA505 /* PDBManager.h */,
@@ -171,6 +176,7 @@
 				C3A9A916264B6398008BA505 /* PBViewController.m in Sources */,
 				C3A9A91B264B63E0008BA505 /* Notify.m in Sources */,
 				C3A9A8FA264B6355008BA505 /* AppDelegate.m in Sources */,
+				C3075B7A283C07D500A4E9A0 /* PastieWindow.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

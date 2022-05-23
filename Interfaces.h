@@ -11,6 +11,7 @@
 #import <UIKit/UIKit.h>
 #include <notify.h>
 #import "PDBManager.h"
+#import "PastieWindow.h"
 #import "PBViewController.h"
 #define LIGHTMESSAGING_USE_ROCKETBOOTSTRAP 500
 #import <LightMessaging/LightMessaging.h>
