@@ -21,6 +21,7 @@ NSString * const kPDBSaveString = @"INSERT INTO Paste ( string ) VALUES ( $strin
 NSString * const kPDBSaveImage = @"INSERT INTO Paste ( imagePath ) VALUES ( $imagePath );";
 NSString * const kPDBDeletePaste = @"DELETE FROM Paste WHERE id = $id;";
 NSString * const kPDBDeletePasteByString = @"DELETE FROM Paste WHERE string = $string;";
+NSString * const kPDBDeletePastesByStrings = @"DELETE FROM Paste WHERE string in $strings;";
 NSString * const kPDBDeletePasteByImage = @"DELETE FROM Paste WHERE imagePath = $imagePath;";
 NSString * const kPDBFindPaste = @"SELECT * FROM Paste WHERE id = $id;";
 NSString * const kPDBListStrings = @"SELECT id, string FROM Paste WHERE string IS NOT NULL ORDER BY id DESC;";
@@ -368,6 +369,15 @@ NSString * const kPDBListImages = @"SELECT id, imagePath FROM Paste WHERE imageP
     [self executeStatement:kPDBDeletePasteByString arguments:@{
         @"$string": string
     }];
+}
+
+- (void)deleteStrings:(NSArray<NSString *> *)strings {
+//    [self executeStatement:kPDBDeletePastesByStrings arguments:@{
+//        @"$strings": strings
+//    }];
+    for (NSString *s in strings) {
+        [self deleteString:s];
+    }
 }
 
 - (void)deleteImage:(NSString *)imagePath {

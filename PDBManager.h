@@ -24,6 +24,7 @@
 - (BOOL)addStrings:(NSArray<NSString *> *)string;
 - (BOOL)addImages:(NSArray<UIImage *> *)image;
 
+- (void)deleteStrings:(NSArray<NSString *> *)strings;
 - (void)deleteString:(NSString *)string;
 - (void)deleteImage:(NSString *)imagePath;
 
