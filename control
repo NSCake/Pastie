@@ -1,5 +1,7 @@
 Package: com.nscake.pastie
 Name: Pastie
+Pre-Depends: firmware (>= 14.0)
+Depends: mobilesubstrate
 Version: 0.0.1
 Architecture: iphoneos-arm
 Description: A usable clipboard manager.
