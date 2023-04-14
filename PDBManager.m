@@ -88,6 +88,7 @@ NSString * const kPDBListImages = @"SELECT id, imagePath FROM Paste WHERE imageP
     int err = sqlite3_open(self.path.UTF8String, &_db);
 
     if (err != SQLITE_OK) {
+        _db = nil;
         return NO;
     }
     
@@ -250,7 +251,9 @@ NSString * const kPDBListImages = @"SELECT id, imagePath FROM Paste WHERE imageP
 }
 
 - (PSQLResult *)executeStatement:(NSString *)sql arguments:(NSDictionary *)args {
-    [self open];
+    if (![self open]) {
+        return nil;
+    }
     
     PSQLResult *result = nil;
     
@@ -269,6 +272,11 @@ NSString * const kPDBListImages = @"SELECT id, imagePath FROM Paste WHERE imageP
         NSArray<NSString *> *columns = [NSArray pastie_forEachUpTo:columnCount map:^id(NSUInteger i) {
             return @(sqlite3_column_name(pstmt, (int)i));
         }];
+        
+        // Hoping to fix weird crash
+        if (!pstmt || (void *)pstmt < (void *)0x100000000) {
+            return nil;
+        }
         
         // Execute statement
         while ((status = sqlite3_step(pstmt)) == SQLITE_ROW) {
@@ -312,14 +320,17 @@ NSString * const kPDBListImages = @"SELECT id, imagePath FROM Paste WHERE imageP
     if (!strings.count) return YES;
     
     NSString *string = strings[0];
+    if (!string.length) return YES;
+    
     if (strings.count > 1) {
         string = [strings componentsJoinedByString:@"\n"];
-    } else {
-        // Abort if this is the string we just copied
-        if ([self.lastCopy isEqualToString:string]) {
-            return YES;
-        }
     }
+    // else {
+    //     // Abort if this is the string we just copied
+    //     if ([self.lastCopy isEqualToString:string]) {
+    //         return YES;
+    //     }
+    // }
     
     // Move this string to the front if it's already inserted
     [self deleteString:string];
