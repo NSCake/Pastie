@@ -13,6 +13,10 @@
 
 #define kReuseID @"PBViewController"
 
+@interface UIScrollView (Private)
+- (BOOL)_scrollToTopIfPossible:(BOOL)animated;
+@end
+
 static BOOL PastieController_isPresented = NO;
 @implementation PastieController
 
@@ -94,8 +98,26 @@ static BOOL PastieController_isPresented = NO;
     [self reloadData];
 }
 
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    
+    [self.tableView _scrollToTopIfPossible:NO];
+    
+    // CGPoint offset = CGPointMake(0, -(self.tableView.contentInset.top));
+    // self.tableView.contentOffset = offset;
+    // self.navigationItem.hidesSearchBarWhenScrolling = NO;
+}
+
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
+    
+    [self.tableView _scrollToTopIfPossible:NO];
+    
+    // [UIView animateWithDuration:0.2 animations:^{
+    //     self.navigationItem.hidesSearchBarWhenScrolling = YES;
+    //     [self.navigationController.view setNeedsLayout];
+    //     [self.navigationController.view layoutIfNeeded];
+    // }];
     
     self.window = self.view.window;
     [self.window makeKeyWindow];
