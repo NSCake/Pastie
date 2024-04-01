@@ -3,32 +3,81 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		C3075B7A283C07D500A4E9A0 /* PastieWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = C3075B78283C07D500A4E9A0 /* PastieWindow.m */; };
-		C3A9A8FA264B6355008BA505 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = C3A9A8F9264B6355008BA505 /* AppDelegate.m */; };
+		C385B24A2B9C027500B081EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C385B2492B9C027500B081EE /* AppDelegate.swift */; };
+		C385B24D2B9E4B6300B081EE /* PBMetaTagParser.m in Sources */ = {isa = PBXBuildFile; fileRef = C385B24C2B9E4B6300B081EE /* PBMetaTagParser.m */; };
+		C385B2552B9E50EA00B081EE /* PastieTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C385B2542B9E50EA00B081EE /* PastieTests.swift */; };
+		C385B25C2B9E52E300B081EE /* PBMetaTagParser.m in Sources */ = {isa = PBXBuildFile; fileRef = C385B24C2B9E4B6300B081EE /* PBMetaTagParser.m */; };
+		C3A486B02BBA451E00C56F64 /* NSString+Regex.m in Sources */ = {isa = PBXBuildFile; fileRef = C3A486AF2BBA451E00C56F64 /* NSString+Regex.m */; };
 		C3A9A8FC264B6358008BA505 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C3A9A8FB264B6358008BA505 /* Assets.xcassets */; };
 		C3A9A8FF264B6358008BA505 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C3A9A8FD264B6358008BA505 /* LaunchScreen.storyboard */; };
-		C3A9A902264B6358008BA505 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = C3A9A901264B6358008BA505 /* main.m */; };
 		C3A9A915264B6398008BA505 /* NSArray+Map.m in Sources */ = {isa = PBXBuildFile; fileRef = C3A9A90D264B6397008BA505 /* NSArray+Map.m */; };
 		C3A9A916264B6398008BA505 /* PBViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = C3A9A910264B6397008BA505 /* PBViewController.m */; };
 		C3A9A917264B6398008BA505 /* PDBManager.m in Sources */ = {isa = PBXBuildFile; fileRef = C3A9A912264B6398008BA505 /* PDBManager.m */; };
 		C3A9A918264B6398008BA505 /* PSQLResult.m in Sources */ = {isa = PBXBuildFile; fileRef = C3A9A913264B6398008BA505 /* PSQLResult.m */; };
 		C3A9A91B264B63E0008BA505 /* Notify.m in Sources */ = {isa = PBXBuildFile; fileRef = C3A9A91A264B63E0008BA505 /* Notify.m */; };
+		C3BA3CC72AF9B0430012A5D9 /* PastieShortcutsExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3BA3CC62AF9B0430012A5D9 /* PastieShortcutsExtension.swift */; };
+		C3BA3CC92AF9B0430012A5D9 /* PastieShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3BA3CC82AF9B0430012A5D9 /* PastieShortcuts.swift */; };
+		C3BA3CCD2AF9B0430012A5D9 /* PastieShortcuts.appex in Embed ExtensionKit Extensions */ = {isa = PBXBuildFile; fileRef = C3BA3CC42AF9B0430012A5D9 /* PastieShortcuts.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		C3BA3CDD2AF9BB8C0012A5D9 /* NSArray+Map.h in Sources */ = {isa = PBXBuildFile; fileRef = C3A9A914264B6398008BA505 /* NSArray+Map.h */; };
+		C3BA3CDE2AF9BB8C0012A5D9 /* NSArray+Map.m in Sources */ = {isa = PBXBuildFile; fileRef = C3A9A90D264B6397008BA505 /* NSArray+Map.m */; };
+		C3BA3CDF2AF9BB8C0012A5D9 /* PDBManager.h in Sources */ = {isa = PBXBuildFile; fileRef = C3A9A911264B6398008BA505 /* PDBManager.h */; };
+		C3BA3CE02AF9BB8C0012A5D9 /* PDBManager.m in Sources */ = {isa = PBXBuildFile; fileRef = C3A9A912264B6398008BA505 /* PDBManager.m */; };
+		C3BA3CE12AF9BB8C0012A5D9 /* PSQLResult.h in Sources */ = {isa = PBXBuildFile; fileRef = C3A9A90E264B6397008BA505 /* PSQLResult.h */; };
+		C3BA3CE22AF9BB8C0012A5D9 /* PSQLResult.m in Sources */ = {isa = PBXBuildFile; fileRef = C3A9A913264B6398008BA505 /* PSQLResult.m */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		C385B2562B9E50EA00B081EE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C3A9A8ED264B6355008BA505 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C3A9A8F4264B6355008BA505;
+			remoteInfo = Pastie;
+		};
+		C3BA3CCB2AF9B0430012A5D9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C3A9A8ED264B6355008BA505 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C3BA3CC32AF9B0430012A5D9;
+			remoteInfo = PastieShortcuts;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		C3BA3CCE2AF9B0430012A5D9 /* Embed ExtensionKit Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(EXTENSIONS_FOLDER_PATH)";
+			dstSubfolderSpec = 16;
+			files = (
+				C3BA3CCD2AF9B0430012A5D9 /* PastieShortcuts.appex in Embed ExtensionKit Extensions */,
+			);
+			name = "Embed ExtensionKit Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		C3075B78283C07D500A4E9A0 /* PastieWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PastieWindow.m; sourceTree = SOURCE_ROOT; };
 		C3075B79283C07D500A4E9A0 /* PastieWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PastieWindow.h; sourceTree = SOURCE_ROOT; };
+		C385B2482B9C027400B081EE /* Pastie-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Pastie-Bridging-Header.h"; sourceTree = "<group>"; };
+		C385B2492B9C027500B081EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		C385B24B2B9E4B6300B081EE /* PBMetaTagParser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PBMetaTagParser.h; sourceTree = SOURCE_ROOT; };
+		C385B24C2B9E4B6300B081EE /* PBMetaTagParser.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PBMetaTagParser.m; sourceTree = SOURCE_ROOT; };
+		C385B2522B9E50EA00B081EE /* PastieTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PastieTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		C385B2542B9E50EA00B081EE /* PastieTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PastieTests.swift; sourceTree = "<group>"; };
+		C385B25B2B9E528300B081EE /* PastieShortcuts.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PastieShortcuts.entitlements; sourceTree = "<group>"; };
+		C3A486AE2BBA451E00C56F64 /* NSString+Regex.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSString+Regex.h"; sourceTree = SOURCE_ROOT; };
+		C3A486AF2BBA451E00C56F64 /* NSString+Regex.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSString+Regex.m"; sourceTree = SOURCE_ROOT; };
 		C3A9A8F5264B6355008BA505 /* Pastie.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Pastie.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		C3A9A8F8264B6355008BA505 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
-		C3A9A8F9264B6355008BA505 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		C3A9A8FB264B6358008BA505 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C3A9A8FE264B6358008BA505 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		C3A9A900264B6358008BA505 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		C3A9A901264B6358008BA505 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		C3A9A90C264B6397008BA505 /* PBViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PBViewController.h; sourceTree = SOURCE_ROOT; };
 		C3A9A90D264B6397008BA505 /* NSArray+Map.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSArray+Map.m"; sourceTree = SOURCE_ROOT; };
 		C3A9A90E264B6397008BA505 /* PSQLResult.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PSQLResult.h; sourceTree = SOURCE_ROOT; };
@@ -39,10 +88,30 @@
 		C3A9A913264B6398008BA505 /* PSQLResult.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PSQLResult.m; sourceTree = SOURCE_ROOT; };
 		C3A9A914264B6398008BA505 /* NSArray+Map.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSArray+Map.h"; sourceTree = SOURCE_ROOT; };
 		C3A9A91A264B63E0008BA505 /* Notify.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Notify.m; path = Pastie/Crap/Notify.m; sourceTree = SOURCE_ROOT; };
+		C3BA3CC42AF9B0430012A5D9 /* PastieShortcuts.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.extensionkit-extension"; includeInIndex = 0; path = PastieShortcuts.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		C3BA3CC62AF9B0430012A5D9 /* PastieShortcutsExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PastieShortcutsExtension.swift; sourceTree = "<group>"; };
+		C3BA3CC82AF9B0430012A5D9 /* PastieShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PastieShortcuts.swift; sourceTree = "<group>"; };
+		C3BA3CCA2AF9B0430012A5D9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C3BA3CD82AF9B4570012A5D9 /* Pastie.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Pastie.entitlements; sourceTree = "<group>"; };
+		C3BA3CE82AF9EE070012A5D9 /* Bridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Bridge.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		C385B24F2B9E50EA00B081EE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C3A9A8F2264B6355008BA505 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C3BA3CC12AF9B0430012A5D9 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -52,10 +121,28 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		C337C4A02A01E993002E782F /* SQLite */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = SQLite;
+			sourceTree = "<group>";
+		};
+		C385B2532B9E50EA00B081EE /* PastieTests */ = {
+			isa = PBXGroup;
+			children = (
+				C385B2542B9E50EA00B081EE /* PastieTests.swift */,
+			);
+			path = PastieTests;
+			sourceTree = "<group>";
+		};
 		C3A9A8EC264B6355008BA505 = {
 			isa = PBXGroup;
 			children = (
+				C337C4A02A01E993002E782F /* SQLite */,
 				C3A9A8F7264B6355008BA505 /* Pastie */,
+				C3BA3CC52AF9B0430012A5D9 /* PastieShortcuts */,
+				C385B2532B9E50EA00B081EE /* PastieTests */,
 				C3A9A8F6264B6355008BA505 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -64,6 +151,8 @@
 			isa = PBXGroup;
 			children = (
 				C3A9A8F5264B6355008BA505 /* Pastie.app */,
+				C3BA3CC42AF9B0430012A5D9 /* PastieShortcuts.appex */,
+				C385B2522B9E50EA00B081EE /* PastieTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -71,9 +160,12 @@
 		C3A9A8F7264B6355008BA505 /* Pastie */ = {
 			isa = PBXGroup;
 			children = (
+				C3BA3CD82AF9B4570012A5D9 /* Pastie.entitlements */,
 				C3A9A90F264B6397008BA505 /* Interfaces.h */,
 				C3A9A914264B6398008BA505 /* NSArray+Map.h */,
 				C3A9A90D264B6397008BA505 /* NSArray+Map.m */,
+				C3A486AE2BBA451E00C56F64 /* NSString+Regex.h */,
+				C3A486AF2BBA451E00C56F64 /* NSString+Regex.m */,
 				C3075B79283C07D500A4E9A0 /* PastieWindow.h */,
 				C3075B78283C07D500A4E9A0 /* PastieWindow.m */,
 				C3A9A90C264B6397008BA505 /* PBViewController.h */,
@@ -82,6 +174,8 @@
 				C3A9A912264B6398008BA505 /* PDBManager.m */,
 				C3A9A90E264B6397008BA505 /* PSQLResult.h */,
 				C3A9A913264B6398008BA505 /* PSQLResult.m */,
+				C385B24B2B9E4B6300B081EE /* PBMetaTagParser.h */,
+				C385B24C2B9E4B6300B081EE /* PBMetaTagParser.m */,
 				C3A9A900264B6358008BA505 /* Info.plist */,
 				C3A9A90A264B6381008BA505 /* Crap */,
 			);
@@ -92,18 +186,47 @@
 			isa = PBXGroup;
 			children = (
 				C3A9A91A264B63E0008BA505 /* Notify.m */,
-				C3A9A8F8264B6355008BA505 /* AppDelegate.h */,
-				C3A9A8F9264B6355008BA505 /* AppDelegate.m */,
+				C385B2492B9C027500B081EE /* AppDelegate.swift */,
 				C3A9A8FB264B6358008BA505 /* Assets.xcassets */,
 				C3A9A8FD264B6358008BA505 /* LaunchScreen.storyboard */,
-				C3A9A901264B6358008BA505 /* main.m */,
+				C385B2482B9C027400B081EE /* Pastie-Bridging-Header.h */,
 			);
 			path = Crap;
+			sourceTree = "<group>";
+		};
+		C3BA3CC52AF9B0430012A5D9 /* PastieShortcuts */ = {
+			isa = PBXGroup;
+			children = (
+				C385B25B2B9E528300B081EE /* PastieShortcuts.entitlements */,
+				C3BA3CC62AF9B0430012A5D9 /* PastieShortcutsExtension.swift */,
+				C3BA3CC82AF9B0430012A5D9 /* PastieShortcuts.swift */,
+				C3BA3CE82AF9EE070012A5D9 /* Bridge.h */,
+				C3BA3CCA2AF9B0430012A5D9 /* Info.plist */,
+			);
+			path = PastieShortcuts;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		C385B2512B9E50EA00B081EE /* PastieTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C385B2582B9E50EA00B081EE /* Build configuration list for PBXNativeTarget "PastieTests" */;
+			buildPhases = (
+				C385B24E2B9E50EA00B081EE /* Sources */,
+				C385B24F2B9E50EA00B081EE /* Frameworks */,
+				C385B2502B9E50EA00B081EE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C385B2572B9E50EA00B081EE /* PBXTargetDependency */,
+			);
+			name = PastieTests;
+			productName = PastieTests;
+			productReference = C385B2522B9E50EA00B081EE /* PastieTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		C3A9A8F4264B6355008BA505 /* Pastie */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = C3A9A905264B6358008BA505 /* Build configuration list for PBXNativeTarget "Pastie" */;
@@ -111,15 +234,34 @@
 				C3A9A8F1264B6355008BA505 /* Sources */,
 				C3A9A8F2264B6355008BA505 /* Frameworks */,
 				C3A9A8F3264B6355008BA505 /* Resources */,
+				C3BA3CCE2AF9B0430012A5D9 /* Embed ExtensionKit Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				C3BA3CCC2AF9B0430012A5D9 /* PBXTargetDependency */,
 			);
 			name = Pastie;
 			productName = Pastie;
 			productReference = C3A9A8F5264B6355008BA505 /* Pastie.app */;
 			productType = "com.apple.product-type.application";
+		};
+		C3BA3CC32AF9B0430012A5D9 /* PastieShortcuts */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C3BA3CD12AF9B0430012A5D9 /* Build configuration list for PBXNativeTarget "PastieShortcuts" */;
+			buildPhases = (
+				C3BA3CC02AF9B0430012A5D9 /* Sources */,
+				C3BA3CC12AF9B0430012A5D9 /* Frameworks */,
+				C3BA3CC22AF9B0430012A5D9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PastieShortcuts;
+			productName = PastieShortcuts;
+			productReference = C3BA3CC42AF9B0430012A5D9 /* PastieShortcuts.appex */;
+			productType = "com.apple.product-type.extensionkit-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -127,10 +269,20 @@
 		C3A9A8ED264B6355008BA505 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1240;
+				BuildIndependentTargetsInParallel = YES;
+				LastSwiftUpdateCheck = 1510;
+				LastUpgradeCheck = 1510;
 				TargetAttributes = {
+					C385B2512B9E50EA00B081EE = {
+						CreatedOnToolsVersion = 15.1;
+						TestTargetID = C3A9A8F4264B6355008BA505;
+					};
 					C3A9A8F4264B6355008BA505 = {
 						CreatedOnToolsVersion = 12.4;
+						LastSwiftMigration = 1510;
+					};
+					C3BA3CC32AF9B0430012A5D9 = {
+						CreatedOnToolsVersion = 14.3;
 					};
 				};
 			};
@@ -148,11 +300,20 @@
 			projectRoot = "";
 			targets = (
 				C3A9A8F4264B6355008BA505 /* Pastie */,
+				C3BA3CC32AF9B0430012A5D9 /* PastieShortcuts */,
+				C385B2512B9E50EA00B081EE /* PastieTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		C385B2502B9E50EA00B081EE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C3A9A8F3264B6355008BA505 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -162,25 +323,70 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C3BA3CC22AF9B0430012A5D9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		C385B24E2B9E50EA00B081EE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C385B2552B9E50EA00B081EE /* PastieTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C3A9A8F1264B6355008BA505 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				C3A9A915264B6398008BA505 /* NSArray+Map.m in Sources */,
-				C3A9A902264B6358008BA505 /* main.m in Sources */,
 				C3A9A918264B6398008BA505 /* PSQLResult.m in Sources */,
+				C385B24A2B9C027500B081EE /* AppDelegate.swift in Sources */,
 				C3A9A917264B6398008BA505 /* PDBManager.m in Sources */,
 				C3A9A916264B6398008BA505 /* PBViewController.m in Sources */,
+				C3A486B02BBA451E00C56F64 /* NSString+Regex.m in Sources */,
 				C3A9A91B264B63E0008BA505 /* Notify.m in Sources */,
-				C3A9A8FA264B6355008BA505 /* AppDelegate.m in Sources */,
 				C3075B7A283C07D500A4E9A0 /* PastieWindow.m in Sources */,
+				C385B24D2B9E4B6300B081EE /* PBMetaTagParser.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C3BA3CC02AF9B0430012A5D9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C3BA3CDD2AF9BB8C0012A5D9 /* NSArray+Map.h in Sources */,
+				C3BA3CDE2AF9BB8C0012A5D9 /* NSArray+Map.m in Sources */,
+				C3BA3CDF2AF9BB8C0012A5D9 /* PDBManager.h in Sources */,
+				C3BA3CE02AF9BB8C0012A5D9 /* PDBManager.m in Sources */,
+				C3BA3CE12AF9BB8C0012A5D9 /* PSQLResult.h in Sources */,
+				C3BA3CE22AF9BB8C0012A5D9 /* PSQLResult.m in Sources */,
+				C3BA3CC72AF9B0430012A5D9 /* PastieShortcutsExtension.swift in Sources */,
+				C3BA3CC92AF9B0430012A5D9 /* PastieShortcuts.swift in Sources */,
+				C385B25C2B9E52E300B081EE /* PBMetaTagParser.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		C385B2572B9E50EA00B081EE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C3A9A8F4264B6355008BA505 /* Pastie */;
+			targetProxy = C385B2562B9E50EA00B081EE /* PBXContainerItemProxy */;
+		};
+		C3BA3CCC2AF9B0430012A5D9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C3BA3CC32AF9B0430012A5D9 /* PastieShortcuts */;
+			targetProxy = C3BA3CCB2AF9B0430012A5D9 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		C3A9A8FD264B6358008BA505 /* LaunchScreen.storyboard */ = {
@@ -194,10 +400,57 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		C385B2592B9E50EA00B081EE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = S6N2F22V2Z;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nscake.PastieTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Pastie.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Pastie";
+			};
+			name = Debug;
+		};
+		C385B25A2B9E50EA00B081EE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = S6N2F22V2Z;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.2;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nscake.PastieTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Pastie.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Pastie";
+			};
+			name = Release;
+		};
 		C3A9A903264B6358008BA505 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -231,6 +484,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -257,6 +511,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -290,6 +545,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -302,6 +558,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -309,8 +566,12 @@
 		C3A9A906264B6358008BA505 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = NO;
+				CODE_SIGN_ENTITLEMENTS = Pastie/Pastie.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = S6N2F22V2Z;
 				INFOPLIST_FILE = Pastie/Info.plist;
@@ -320,15 +581,24 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.nscake.Pastie;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TARGETED_DEVICE_FAMILY = "1,2";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "Pastie/Crap/Pastie-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
 		C3A9A907264B6358008BA505 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = NO;
+				CODE_SIGN_ENTITLEMENTS = Pastie/Pastie.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = S6N2F22V2Z;
 				INFOPLIST_FILE = Pastie/Info.plist;
@@ -338,6 +608,77 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.nscake.Pastie;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "Pastie/Crap/Pastie-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		C3BA3CCF2AF9B0430012A5D9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_ENTITLEMENTS = PastieShortcuts/PastieShortcuts.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = S6N2F22V2Z;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PastieShortcuts/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = PastieShortcuts;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nscake.Pastie.PastieShortcuts;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = PastieShortcuts/Bridge.h;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C3BA3CD02AF9B0430012A5D9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_ENTITLEMENTS = PastieShortcuts/PastieShortcuts.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = S6N2F22V2Z;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PastieShortcuts/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = PastieShortcuts;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.nscake.Pastie.PastieShortcuts;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SKIP_INSTALL = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = PastieShortcuts/Bridge.h;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -345,6 +686,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		C385B2582B9E50EA00B081EE /* Build configuration list for PBXNativeTarget "PastieTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C385B2592B9E50EA00B081EE /* Debug */,
+				C385B25A2B9E50EA00B081EE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		C3A9A8F0264B6355008BA505 /* Build configuration list for PBXProject "Pastie" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -359,6 +709,15 @@
 			buildConfigurations = (
 				C3A9A906264B6358008BA505 /* Debug */,
 				C3A9A907264B6358008BA505 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C3BA3CD12AF9B0430012A5D9 /* Build configuration list for PBXNativeTarget "PastieShortcuts" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C3BA3CCF2AF9B0430012A5D9 /* Debug */,
+				C3BA3CD02AF9B0430012A5D9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
