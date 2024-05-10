@@ -13,7 +13,9 @@
 #import "PBMetaTagParser.h"
 #import <sqlite3.h>
 
-NSString * const kPDBCreateTable = @"CREATE TABLE IF NOT EXISTS Paste ( "
+NSString * const kAppGroupIdentifier = @"group.com.nscake.pastie";
+
+NSString * const kPDBCreatePastesTable = @"CREATE TABLE IF NOT EXISTS Paste ( "
     "id INTEGER PRIMARY KEY, "
     "string TEXT, "
     "imagePath TEXT " // Actually just filenames
@@ -30,15 +32,30 @@ NSString * const kPDBFindPaste = @"SELECT * FROM Paste WHERE id = $id;";
 NSString * const kPDBListStrings = @"SELECT id, string FROM Paste WHERE string IS NOT NULL ORDER BY id DESC;";
 NSString * const kPDBListImages = @"SELECT id, imagePath FROM Paste WHERE imagePath IS NOT NULL ORDER BY id DESC;";
 
-#define PDBCacheDirectory() [NSSearchPathForDirectoriesInDomains( \
-    NSCachesDirectory, NSUserDomainMask, YES \
-)[0] stringByAppendingPathComponent:@"Pastie"]
-
-#define PDBPathForImageWithFilename(filename) [PDBCacheDirectory() \
+#define PDBPathForImageWithFilename(filename) [PDBDatabaseDirectory() \
     stringByAppendingPathComponent:[@"Images/" \
         stringByAppendingString:filename \
     ] \
 ]
+
+NSString * PDBDatabaseDirectory(void) {
+    static NSString *directory = nil;
+    if (directory) return directory;
+    
+    #ifdef __APPLE__
+    NSURL *container = [NSFileManager.defaultManager
+        containerURLForSecurityApplicationGroupIdentifier:kAppGroupIdentifier
+    ];
+    
+    directory = [container URLByAppendingPathComponent:@"Pastes" isDirectory:YES].path;
+    #else
+    directory = [NSSearchPathForDirectoriesInDomains(
+        NSCachesDirectory, NSUserDomainMask, YES
+    )[0] stringByAppendingPathComponent:@"Pastie"];
+    #endif
+    
+    return directory;
+}
 
 @interface PDBManager ()
 @property (nonatomic) sqlite3 *db;
@@ -46,8 +63,6 @@ NSString * const kPDBListImages = @"SELECT id, imagePath FROM Paste WHERE imageP
 @end
 
 @implementation PDBManager
-
-- (NSString *)creation { return kPDBCreateTable; }
 
 + (instancetype)sharedManager {
     static PDBManager *shared = nil;
@@ -64,8 +79,9 @@ NSString * const kPDBListImages = @"SELECT id, imagePath FROM Paste WHERE imageP
     
     if (self) {
         self.limit = 1000;
-        self.path = [PDBCacheDirectory() stringByAppendingPathComponent:@"pastes.db"];
+        self.path = [PDBDatabaseDirectory() stringByAppendingPathComponent:@"pastes.db"];
         
+        // Create pastes and images folders
         [NSFileManager.defaultManager
             createDirectoryAtPath:PDBPathForImageWithFilename(@"")
             withIntermediateDirectories:YES
@@ -73,7 +89,7 @@ NSString * const kPDBListImages = @"SELECT id, imagePath FROM Paste WHERE imageP
             error:nil
         ];
         
-        [self executeStatement:kPDBCreateTable];
+        [self createTables];
     }
     
     return self;
@@ -208,6 +224,10 @@ NSString * const kPDBListImages = @"SELECT id, imagePath FROM Paste WHERE imageP
     ];
     
     return [PSQLResult error:message];
+}
+
+- (void)createTables {
+    [self executeStatement:kPDBCreatePastesTable];
 }
 
 - (id)objectForColumnIndex:(int)columnIdx stmt:(sqlite3_stmt*)stmt {
@@ -422,16 +442,16 @@ NSString * const kPDBListImages = @"SELECT id, imagePath FROM Paste WHERE imageP
     
     // Skip file deletion if file does not exist
     if (![NSFileManager.defaultManager fileExistsAtPath:self.path]) {
-        [self executeStatement:kPDBCreateTable];
+        [self createTables];
     } else {
         NSError *error = nil;
         [NSFileManager.defaultManager removeItemAtPath:self.path error:&error];
         
         if (!error) {
-            [self executeStatement:kPDBCreateTable];        
+            [self createTables];
         } else {
             errorCallback(error);
-        }        
+        }
     }
 }
 
