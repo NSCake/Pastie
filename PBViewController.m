@@ -9,6 +9,7 @@
 #import "PBViewController.h"
 #include <Foundation/Foundation.h>
 #import "NSArray+Map.h"
+#import "NSString+Regex.h"
 #import "PDBManager.h"
 #import "Interfaces.h"
 
@@ -52,34 +53,33 @@ static BOOL PastieController_isPresented = NO;
 @property (nonatomic) NSMutableArray<NSString *> *dataSource;
 @property (nonatomic) NSDictionary<NSString*,UIImage*> *pathsToImages;
 
+@property (nonatomic, nonatomic) NSString *computedTitle;
 /// Filtered, or not, and drived from the strings property.
 @property (nonatomic, readonly) NSMutableArray<NSString *> *rows;
 @property (nonatomic) NSString *filterText;
 
 @property (nonatomic) UIWindow *window;
 @property (nonatomic, readonly) UIMenu *moreMenu;
+@property (nonatomic, readonly) NSString *trashTitle;
+@property (nonatomic, readonly) NSString *trashButtonTitle;
+@property (nonatomic, readonly) NSArray<UIBarButtonItem *> *defaultRightBarButtonItems;
+@property (nonatomic, readonly) NSArray<UIBarButtonItem *> *editingRightBarButtonItems;
 @end
 
 @implementation PBViewController
 
+#pragma mark Lifecycle
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    self.title = @"Pastie";
+    self.title = self.computedTitle;
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc]
         initWithBarButtonSystemItem:UIBarButtonSystemItemTrash
         target:self action:@selector(didPressTrash)
     ];
-    self.navigationItem.rightBarButtonItems = @[
-        [[UIBarButtonItem alloc]
-            initWithBarButtonSystemItem:UIBarButtonSystemItemDone
-            target:self action:@selector(dismiss:)
-        ],
-        [[UIBarButtonItem alloc]
-            initWithImage:[UIImage systemImageNamed:@"ellipsis"]
-            menu:self.moreMenu
-        ]
-    ];
+    
+    self.navigationItem.rightBarButtonItems = self.defaultRightBarButtonItems;
     
     if (@available(iOS 13.0, *)) {
         self.navigationItem.leftBarButtonItem.tintColor = UIColor.systemRedColor;
@@ -94,10 +94,15 @@ static BOOL PastieController_isPresented = NO;
     searchController.hidesNavigationBarDuringPresentation = NO;
     self.navigationItem.searchController = searchController;
     
+    #ifndef __APPLE__
     self.tableView.automaticallyAdjustsScrollIndicatorInsets = NO;
+    #endif
+    
+    self.tableView.showsVerticalScrollIndicator = YES;
+    self.tableView.allowsMultipleSelectionDuringEditing = YES;
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
     [self.tableView registerClass:UITableViewCell.self forCellReuseIdentifier:kReuseID];
-    [self reloadData];
+    [self reloadData:NO];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -114,6 +119,7 @@ static BOOL PastieController_isPresented = NO;
     [super viewDidAppear:animated];
     
     [self.tableView _scrollToTopIfPossible:NO];
+    [self reloadData:NO];
     
     // [UIView animateWithDuration:0.2 animations:^{
     //     self.navigationItem.hidesSearchBarWhenScrolling = YES;
@@ -147,40 +153,142 @@ static BOOL PastieController_isPresented = NO;
     self.window.hidden = YES;
 }
 
+#pragma mark Properties
+
+- (NSString *)computedTitle {
+    if (self.tableView.isEditing) {
+        NSInteger selected = self.tableView.indexPathsForSelectedRows.count;
+        return [NSString stringWithFormat:@"%@ Selected", @(selected)];
+    }
+    
+    return @"Pastie";
+}
+
+- (NSArray<UIBarButtonItem *> *)defaultRightBarButtonItems {
+    #ifdef __APPLE__
+    return @[
+        [[UIBarButtonItem alloc]
+            initWithImage:[UIImage systemImageNamed:@"ellipsis"]
+            menu:self.moreMenu
+        ],
+        [[UIBarButtonItem alloc]
+         initWithBarButtonSystemItem:UIBarButtonSystemItemAdd
+         target:self action:@selector(addPaste)
+        ]
+    ];
+    #else
+    return @[
+        [[UIBarButtonItem alloc]
+            initWithBarButtonSystemItem:UIBarButtonSystemItemDone
+            target:self action:@selector(dismiss:)
+        ],
+        [[UIBarButtonItem alloc]
+            initWithImage:[UIImage systemImageNamed:@"ellipsis"]
+            menu:self.moreMenu
+        ]
+    ];
+    #endif
+}
+
+- (NSArray<UIBarButtonItem *> *)editingRightBarButtonItems {
+    return @[
+        [[UIBarButtonItem alloc]
+            initWithBarButtonSystemItem:UIBarButtonSystemItemDone
+            target:self action:@selector(endEditingTable)
+        ]
+    ];
+}
+
+- (NSString *)trashTitle {
+    if (self.tableView.isEditing) {
+        return @"Delete Selected Pastes";
+    }
+
+    BOOL filtering = self.filterText.length;
+    return filtering ? @"Delete Search Results" : @"Delete All Pastes";
+}
+
+- (NSString *)trashButtonTitle {
+    if (self.tableView.isEditing) {
+        return @"Delete Selected";
+    }
+
+    BOOL filtering = self.filterText.length;
+    return filtering ? @"Delete Results" : @"Delete All";
+}
+
+#pragma mark Buttons
+
 - (void)dismiss:(BOOL)paste {
+    #ifndef __APPLE__
     [self.navigationController dismissViewControllerAnimated:YES completion:^{
         if (paste) {
             // TODO: paste using UIKeyInput insertText: from a responder
         }
     }];
+    #endif
+}
+
+- (void)addPaste {
+    if (UIPasteboard.generalPasteboard.hasStrings) {
+        [PDBManager.sharedManager addStrings:UIPasteboard.generalPasteboard.strings];
+        [self reloadData:YES];
+    }
+    else {
+        UIAlertController *alert = [UIAlertController
+            alertControllerWithTitle:@"Nothing to add!"
+            message:@"Try copying something first, then come back!"
+            preferredStyle:UIAlertControllerStyleAlert
+        ];
+        [alert addAction:[UIAlertAction actionWithTitle:@"Dismiss" style:UIAlertActionStyleCancel handler:nil]];
+        
+        [self presentViewController:alert animated:YES completion:nil];
+    }
 }
 
 - (void)didPressTrash {
-    BOOL filtering = self.filterText.length;
+    if (self.tableView.isEditing) {
+        NSArray *selected = self.tableView.indexPathsForSelectedRows;
+        NSArray *resultsToClear = [selected pastie_mapped:^id(NSIndexPath *obj, NSUInteger idx) {
+            return self.dataSource[obj.row];
+        }];
+        
+        if (!resultsToClear.count) {
+            return;
+        }
+        
+        return [self promptToDeleteStrings:resultsToClear orClearAll:NO];
+    }
     
-    NSString *title = filtering ?
-        @"Delete Search Results" : @"Clear History";
-    NSString *buttonTitle = filtering ?
-        @"Delete Results" : @"Clear History";
+    BOOL filtering = self.filterText.length;
+    NSArray *resultsToClear = filtering ? self.dataSource : nil;
+    
+    [self promptToDeleteStrings:resultsToClear orClearAll:!resultsToClear];
+}
+
+/// Uses the button title properties declared above
+- (void)promptToDeleteStrings:(NSArray<NSString *> *)strings orClearAll:(BOOL)clearAllIfEmpty {
+    if (!strings.count && !clearAllIfEmpty) {
+        return;
+    }
     
     UIAlertController *alert = [UIAlertController
-        alertControllerWithTitle:title
+        alertControllerWithTitle:self.trashTitle
         message:@"Are you sure? This operation cannot be undone."
         preferredStyle:UIAlertControllerStyleAlert
     ];
     
-    NSArray *resultsToClear = filtering ? self.dataSource : nil;
-    
-    [alert addAction:[UIAlertAction actionWithTitle:buttonTitle
+    [alert addAction:[UIAlertAction actionWithTitle:self.trashButtonTitle
         style:UIAlertActionStyleDestructive
         handler:^(UIAlertAction *action) {
-            if (resultsToClear) {
-                [PDBManager.sharedManager deleteStrings:resultsToClear];
-            } else {
+            if (strings.count) {
+                [PDBManager.sharedManager deleteStrings:strings];
+            }
+            else {
                 [PDBManager.sharedManager clearAllHistory];
             }
-        
-            [self reloadData];
+            [self reloadData:YES];
+            [self endEditingTable];
         }
     ]];
     [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
@@ -207,10 +315,19 @@ static BOOL PastieController_isPresented = NO;
     [self presentViewController:alert animated:YES completion:nil];
 }
 
-- (void)reloadData {
+- (void)reloadData:(BOOL)animated {
     [self softReloadData];
-    // Reload data source and table view, preserving filter
-    self.filterText = self.filterText;
+    
+    if (animated) {
+        // Preserve filter
+        [self filterDataSource:self.filterText];
+        // Animate in new rows
+        [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationAutomatic];
+    }
+    else {
+        // Reload data source and table view, preserving filter
+        self.filterText = self.filterText;
+    }
 }
 
 - (void)softReloadData {
@@ -221,15 +338,67 @@ static BOOL PastieController_isPresented = NO;
 - (void)setFilterText:(NSString *)filterText {
     _filterText = filterText;
     
+    [self filterDataSource:filterText];
+    [self.tableView reloadData];
+}
+
+/// Filter the data source using the current filter text, if any; does not reload the view
+- (void)filterDataSource:(NSString *)filterText {
     if (filterText.length) {
-        self.dataSource = [self.strings pastie_filtered:^BOOL(NSString *obj, NSUInteger idx) {
-            return [obj localizedCaseInsensitiveContainsString:filterText];
-        }];
+        // Filter by regex if the string starts with a slash
+        if ([filterText hasPrefix:@"/"]) {
+            NSString *regex = [filterText substringFromIndex:1];
+            self.dataSource = [self.strings pastie_filtered:^BOOL(NSString *obj, NSUInteger idx) {
+                return [obj pastie_matches:regex];
+            }];
+        }
+        // Ignore leading backslash to allow escaping a forward slash
+        else if ([filterText hasPrefix:@"\\"]) {
+            self.dataSource = [self.strings pastie_filtered:^BOOL(NSString *obj, NSUInteger idx) {
+                return [obj localizedCaseInsensitiveContainsString:[filterText substringFromIndex:1]];
+            }];
+        }
+        // Regular search
+        else {
+            self.dataSource = [self.strings pastie_filtered:^BOOL(NSString *obj, NSUInteger idx) {
+                return [obj localizedCaseInsensitiveContainsString:filterText];
+            }];
+        }
     } else {
         self.dataSource = self.strings;
     }
-    
-    [self.tableView reloadData];
+}
+
+#pragma mark Public
+
+/// For importing a pastie database
+- (BOOL)tryOpenDatabase:(NSURL *)fileURL {
+    if ([fileURL.pathExtension isEqualToString:@"db"]) {
+        [self promptUserToImportDatabaseWith:^(BOOL shouldImport) {
+            if (shouldImport) {
+                [PDBManager.sharedManager importDatabase:fileURL backupFirst:YES callback:^(NSError *error) {
+                    if (error) {
+                        [self presentModal:@"Error Importing Pastes" message:error.localizedDescription];
+                    }
+                    
+                    [self reloadData:YES];
+                }];
+                [self reloadData:YES];
+            }
+        }];
+        return YES;
+    }
+    else {
+        [self presentModal:@"Unsupported File Type" message:@"Expected '.db'"];
+        return NO;
+    }
+}
+
+- (void)promptUserToImportDatabaseWith:(void(^)(BOOL))callback {
+    [self promptUser:@"Import Pastie Data?"
+             message:@"The current database will be backed up and replaced."
+             handler:callback
+    ];
 }
 
 #pragma mark Actions
@@ -241,7 +410,13 @@ static BOOL PastieController_isPresented = NO;
                        identifier:nil
                           handler:^(UIAction *action) {
             [self shareFullDatabase];
-        }]
+        }],
+        [UIAction actionWithTitle:@"Select Pastes"
+                            image:[UIImage systemImageNamed:@"checkmark.circle"]
+                       identifier:nil
+                          handler:^(UIAction *action) {
+            [self beginEditingTable];
+        }],
     ]];
 }
 
@@ -253,13 +428,91 @@ static BOOL PastieController_isPresented = NO;
     [self presentViewController:shareSheet animated:YES completion:nil];
 }
 
+- (void)beginEditingTable {
+    if (self.tableView.isEditing) {
+        return;
+    }
+    
+    self.title = self.computedTitle;
+    [self.tableView setEditing:YES animated:YES];
+    self.navigationItem.rightBarButtonItems = self.editingRightBarButtonItems;
+}
+
+- (void)endEditingTable {
+    if (!self.tableView.isEditing) {
+        return;
+    }
+    
+    self.title = self.computedTitle;
+    [self.tableView setEditing:NO animated:YES];
+    self.navigationItem.rightBarButtonItems = self.defaultRightBarButtonItems;
+}
+
+- (void)presentModal:(NSString *)title message:(NSString *)message {
+    UIAlertController *alert = [UIAlertController
+        alertControllerWithTitle:title
+        message:message
+        preferredStyle:UIAlertControllerStyleAlert
+    ];
+    
+    [alert addAction:[UIAlertAction actionWithTitle:@"Dismiss" style:UIAlertActionStyleCancel handler:nil]];
+    [self presentViewController:alert animated:YES completion:nil];
+}
+
+- (UIAlertController *)presentAlert:(NSString *)title message:(NSString *)message {
+    UIAlertController *alert = [UIAlertController
+        alertControllerWithTitle:title
+        message:message
+        preferredStyle:UIAlertControllerStyleAlert
+    ];
+    
+    [self presentViewController:alert animated:YES completion:nil];
+    return alert;
+}
+
+- (void)promptUser:(NSString *)title message:(NSString *)message handler:(void(^)(BOOL))callback {
+    UIAlertController *alert = [UIAlertController
+        alertControllerWithTitle:title
+        message:message
+        preferredStyle:UIAlertControllerStyleAlert
+    ];
+    
+    [alert addAction:[UIAlertAction actionWithTitle:@"Yes"
+        style:UIAlertActionStyleDefault
+        handler:^(UIAlertAction *action) {
+            callback(YES);
+        }
+    ]];
+    [alert addAction:[UIAlertAction actionWithTitle:@"Cancel"
+        style:UIAlertActionStyleCancel
+        handler:^(UIAlertAction *action) {
+            callback(NO);
+        }
+    ]];
+    
+    [self presentViewController:alert animated:YES completion:nil];
+}
+
 #pragma mark UITableViewDelegate
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (tableView.isEditing) {
+        self.title = self.computedTitle;
+        return;
+    }
+    
     id item = self.dataSource[indexPath.row];
     PDBManager.sharedManager.lastCopy = item;
     UIPasteboard.generalPasteboard.string = item;
+    
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
     [self dismiss:YES];
+}
+
+- (void)tableView:(UITableView *)tableView didDeselectRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (tableView.isEditing) {
+        self.title = self.computedTitle;
+    }
 }
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -275,6 +528,11 @@ forRowAtIndexPath:(NSIndexPath *)indexPath {
     [self softReloadData];
     
     [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:0];
+}
+
+- (BOOL)tableView:(UITableView *)tableView shouldBeginMultipleSelectionInteractionAtIndexPath:(NSIndexPath *)indexPath {
+    [self beginEditingTable];
+    return YES;
 }
 
 #pragma mark UITableViewDataSource

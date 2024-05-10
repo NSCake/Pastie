@@ -17,6 +17,9 @@
 
 @interface PBViewController : UITableViewController
 
-- (void)reloadData;
+- (void)reloadData:(BOOL)animated;
+
+/// For importing a pastie database
+- (BOOL)tryOpenDatabase:(NSURL *)fileURL;
 
 @end
