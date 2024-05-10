@@ -47,8 +47,11 @@
 }
 
 - (UIWindow *)appKeyWindow {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     // First, check UIApplication.keyWindow
     PastieWindow *window = (id)UIApplication.sharedApplication.keyWindow;
+#pragma clang diagnostic pop
     if (window) {
         if ([window isKindOfClass:NSClassFromString(@"FLEXWindow")]) {
             return [window previousKeyWindow];
