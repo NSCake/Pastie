@@ -60,6 +60,7 @@ NSString * PDBDatabaseDirectory(void) {
 @interface PDBManager ()
 @property (nonatomic) sqlite3 *db;
 @property (nonatomic, copy) NSString *path;
+@property (nonatomic, readonly) NSDateFormatter *dateFieldFormatter;
 @end
 
 @implementation PDBManager
@@ -97,6 +98,16 @@ NSString * PDBDatabaseDirectory(void) {
 
 - (void)dealloc {
     [self close];
+}
+
+- (NSDateFormatter *)dateFieldFormatter {
+    static NSDateFormatter *formatter = nil;
+    if (!formatter) {
+        formatter = [NSDateFormatter new];
+        formatter.dateFormat = @"yyyy-MM-dd-HH:mm:ss";
+    }
+    
+    return formatter;
 }
 
 - (BOOL)open {
