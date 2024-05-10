@@ -346,6 +346,22 @@ NSString * PDBDatabaseDirectory(void) {
     return result;
 }
 
+- (PSQLResult *)lastInsert {
+    // Cache last result so we don't overwrite it with this operation
+    PSQLResult *lastResult = _lastResult;
+    
+    PSQLResult *lastInsert = [self executeStatement:@"SELECT last_insert_rowid();"];
+    _lastResult = lastResult;
+    
+    // Pull rowid out of the result and select that row and return it
+    if (!lastInsert.isError) {
+        NSInteger rowid = [lastInsert.rows[0][0] integerValue];
+        return [self executeStatement:kPDBFindPaste arguments:@{ @"$id": @(rowid) }];
+    }
+    else {
+        return lastInsert;
+    }
+}
 
 - (NSString *)databasePath { return self.path; }
 

@@ -21,7 +21,9 @@ NS_ASSUME_NONNULL_BEGIN
 /// Defaults to 1000
 @property (nonatomic) NSInteger limit;
 /// Contains the result of the last operation, which may be an error
-@property (nonatomic, readonly) PSQLResult *lastResult;
+@property (nonatomic, readonly, nullable) PSQLResult *lastResult;
+/// Computes the result of last row inserted in the last insert operation
+@property (nonatomic, readonly, nullable) PSQLResult *lastInsert;
 
 @property (nonatomic, nullable) id lastCopy;
 
