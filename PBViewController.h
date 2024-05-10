@@ -8,8 +8,11 @@
 
 #import <UIKit/UIKit.h>
 
+@class PBViewController;
+
 @interface PastieController : UINavigationController
 @property (nonatomic, class) BOOL isPresented;
+@property (nonatomic, readonly) PBViewController *tableViewController;
 @end
 
 @interface PBViewController : UITableViewController

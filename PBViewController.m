@@ -7,6 +7,7 @@
 //
 
 #import "PBViewController.h"
+#include <Foundation/Foundation.h>
 #import "NSArray+Map.h"
 #import "PDBManager.h"
 #import "Interfaces.h"
@@ -24,6 +25,7 @@ static BOOL PastieController_isPresented = NO;
     self = [self initWithRootViewController:[PBViewController new]];
     if (self) {
         self.modalPresentationStyle = UIModalPresentationFormSheet;
+        _tableViewController = self.viewControllers.firstObject;
         PastieController_isPresented = YES;
     }
     
