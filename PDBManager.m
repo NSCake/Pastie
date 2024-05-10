@@ -7,7 +7,10 @@
 //
 
 #import "Interfaces.h"
+#import <objc/objc.h>
+#import <Foundation/Foundation.h>
 #import "NSArray+Map.h"
+#import "PBMetaTagParser.h"
 #import <sqlite3.h>
 
 NSString * const kPDBCreateTable = @"CREATE TABLE IF NOT EXISTS Paste ( "
@@ -312,9 +315,10 @@ NSString * const kPDBListImages = @"SELECT id, imagePath FROM Paste WHERE imageP
     return result;
 }
 
-#pragma mark Public
 
 - (NSString *)databasePath { return self.path; }
+
+#pragma mark Pastes
 
 - (BOOL)addStrings:(NSArray<NSString *> *)strings {
     if (!strings.count) return YES;
@@ -398,6 +402,9 @@ NSString * const kPDBListImages = @"SELECT id, imagePath FROM Paste WHERE imageP
         @"$imagePath": imagePath
     }];
 }
+
+
+#pragma mark Data Management
 
 - (void)clearAllHistory {
     // Delete images from disk first

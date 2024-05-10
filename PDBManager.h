@@ -9,8 +9,12 @@
 #import <UIKit/UIKit.h>
 #import "PSQLResult.h"
 
+NS_ASSUME_NONNULL_BEGIN
+
 /// Pastie database manager
 @interface PDBManager : NSObject
+
+#pragma mark Properties
 
 /// Singleton instance
 @property (nonatomic, readonly, class) PDBManager *sharedManager;
@@ -19,9 +23,11 @@
 /// Contains the result of the last operation, which may be an error
 @property (nonatomic, readonly) PSQLResult *lastResult;
 
-@property (nonatomic) id lastCopy;
+@property (nonatomic, nullable) id lastCopy;
 
 @property (nonatomic, readonly) NSString *databasePath;
+
+#pragma mark Pastes
 
 - (BOOL)addStrings:(NSArray<NSString *> *)string;
 - (BOOL)addImages:(NSArray<UIImage *> *)image;
@@ -30,13 +36,17 @@
 - (void)deleteString:(NSString *)string;
 - (void)deleteImage:(NSString *)imagePath;
 
-- (void)clearAllHistory;
-- (void)destroyDatabase:(void(^)(NSError *))errorCallback;
-
 - (NSMutableArray<NSString *> *)allStrings;
 /// @return an array of image file names. Pass to \c pathForImageWithName:
 - (NSMutableArray<NSString *> *)allImages;
 
 - (NSString *)pathForImageWithName:(NSString *)name;
 
+#pragma mark Data Management
+
+- (void)clearAllHistory;
+- (void)destroyDatabase:(void(^)(NSError *))errorCallback;
+
 @end
+
+NS_ASSUME_NONNULL_END
