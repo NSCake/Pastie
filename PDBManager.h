@@ -48,6 +48,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)clearAllHistory;
 - (void)destroyDatabase:(void(^)(NSError *))errorCallback;
+- (void)importDatabase:(NSURL *)fileURL backupFirst:(BOOL)backup callback:(void(^)(NSError * _Nullable))callback;
 
 @end
 

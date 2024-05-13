@@ -510,4 +510,55 @@ NSString * PDBDatabaseDirectory(void) {
     }
 }
 
+- (void)importDatabase:(NSURL *)fileURL backupFirst:(BOOL)backup callback:(void(^)(NSError *))callback {
+    NSString *path = fileURL.path;
+    
+    // Ensure file exists at the given path
+    if (![NSFileManager.defaultManager fileExistsAtPath:path]) {
+        return callback([NSError errorWithDomain:@"PDBManager" code:0 userInfo:@{
+            NSLocalizedDescriptionKey: @"File does not exist"
+        }]);
+    }
+    
+    [self close];
+    NSError *error = nil;
+    
+    // Backup the old database first
+    if (backup) {
+        static NSDateFormatter *formatter = nil;
+        if (!formatter) {
+            formatter = [NSDateFormatter new];
+            formatter.dateFormat = @"yyyy-MM-dd'T'HH:mm:ssZ";
+        }
+        
+        // Backup path should include the current date in the ISO 8601 format like so: "pastes-2021-05-07T12:00:00Z.db"
+        NSString *dateString = [formatter stringFromDate:NSDate.date];
+        NSString *backupPath = [PDBDatabaseDirectory()
+            stringByAppendingPathComponent:[NSString stringWithFormat:@"pastes-%@.db", dateString]
+        ];
+        
+        // Copy the new database
+        [NSFileManager.defaultManager copyItemAtPath:self.path toPath:backupPath error:&error];
+        if (error) {
+            return callback(error);
+        }
+    }
+    
+    // Remove the old the database
+    [NSFileManager.defaultManager removeItemAtPath:self.path error:&error];
+    if (error) {
+        return callback(error);
+    }
+    
+    // Replace existing db with new db
+    [NSFileManager.defaultManager copyItemAtPath:path toPath:self.path error:&error];
+    
+    if (error) {
+        return callback(error);
+    }
+    
+    [self open];
+    callback(nil);
+}
+
 @end
