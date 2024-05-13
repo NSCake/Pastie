@@ -429,19 +429,23 @@ NSString * PDBDatabaseDirectory(void) {
     return YES;
 }
 
+- (void)deleteStrings:(NSArray<NSString *> *)strings {
+    for (NSString *s in strings) {
+        [self deleteString:s];
+    }
+}
+
 - (void)deleteString:(NSString *)string {
     [self executeStatement:kPDBDeletePasteByString arguments:@{
         @"$string": string
     }];
 }
 
-- (void)deleteStrings:(NSArray<NSString *> *)strings {
-//    [self executeStatement:kPDBDeletePastesByStrings arguments:@{
-//        @"$strings": strings
-//    }];
-    for (NSString *s in strings) {
-        [self deleteString:s];
-    }
+- (void)deleteURL:(NSString *)url {
+    [self executeStatement:kPDBDeleteURLByString arguments:@{
+        @"$string": url
+    }];
+
 }
 
 - (void)deleteImage:(NSString *)imagePath {
@@ -450,6 +454,30 @@ NSString * PDBDatabaseDirectory(void) {
     }];
 }
 
+/// Not entirely sure why I broke this out; it won't be that useful for much else besides `allStrings`
+- (NSMutableArray<NSString *> *)select:(NSString *)query {
+    PSQLResult *result = [self executeStatement:query];
+    if (!result.isError && result.rows.count) {
+        return (NSMutableArray *)[result.rows pastie_mapped:^id(NSArray<NSString *> *row, NSUInteger idx) {
+            // This pulls the "string" out of `SELECT id, string`
+            return row[1];
+        }];
+    }
+    
+    return nil;
+}
+
+- (NSMutableArray<NSString *> *)allStrings {
+    return [self select:kPDBListStrings];
+}
+
+- (NSMutableArray<NSString *> *)allImages {
+    return @[].mutableCopy; //[self select:kPDBListImages];
+}
+
+- (NSString *)pathForImageWithName:(NSString *)name {
+    return PDBPathForImageWithFilename(name);
+}
 
 #pragma mark Data Management
 
@@ -480,29 +508,6 @@ NSString * PDBDatabaseDirectory(void) {
             errorCallback(error);
         }
     }
-}
-
-- (NSMutableArray<NSString *> *)select:(NSString *)query {
-    PSQLResult *result = [self executeStatement:kPDBListStrings];
-    if (!result.isError && result.rows.count) {
-        return (NSMutableArray *)[result.rows pastie_mapped:^id(NSArray<NSString *> *row, NSUInteger idx) {
-            return row[1];
-        }];
-    }
-    
-    return nil;
-}
-
-- (NSMutableArray<NSString *> *)allStrings {
-    return [self select:kPDBListStrings];
-}
-
-- (NSMutableArray<NSString *> *)allImages {
-    return @[].mutableCopy; //[self select:kPDBListImages];
-}
-
-- (NSString *)pathForImageWithName:(NSString *)name {
-    return PDBPathForImageWithFilename(name);
 }
 
 @end
