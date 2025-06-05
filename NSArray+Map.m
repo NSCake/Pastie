@@ -40,4 +40,8 @@
     }];
 }
 
+- (id)pastie_firstWhere:(BOOL (^)(id, NSUInteger))predicate {
+    return [self pastie_filtered:predicate].firstObject;
+}
+
 @end
