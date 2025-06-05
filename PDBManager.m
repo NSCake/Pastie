@@ -475,8 +475,27 @@ NSString * PDBDatabaseDirectory(void) {
     return @[].mutableCopy; //[self select:kPDBListImages];
 }
 
-- (NSString *)pathForImageWithName:(NSString *)name {
-    return PDBPathForImageWithFilename(name);
+// Callback-based versions
+- (void)allStrings:(void(^)(NSMutableArray<NSString *> *strings))callback {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        NSMutableArray<NSString *> *result = [self allStrings];
+        if (callback) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                callback(result);
+            });
+        }
+    });
+}
+
+- (void)allImages:(void(^)(NSMutableArray<NSString *> *images))callback {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        NSMutableArray<NSString *> *result = [self allImages];
+        if (callback) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                callback(result);
+            });
+        }
+    });
 }
 
 #pragma mark Data Management

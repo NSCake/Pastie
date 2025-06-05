@@ -42,6 +42,9 @@ NS_ASSUME_NONNULL_BEGIN
 /// @return an array of image file names. Pass to \c pathForImageWithName:
 - (NSMutableArray<NSString *> *)allImages;
 
+- (void)allStrings:(void(^)(NSMutableArray<NSString *> *strings))callback;
+- (void)allImages:(void(^)(NSMutableArray<NSString *> *images))callback;
+
 - (NSString *)pathForImageWithName:(NSString *)name;
 
 #pragma mark Data Management

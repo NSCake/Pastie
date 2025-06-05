@@ -316,23 +316,30 @@ static BOOL PastieController_isPresented = NO;
 }
 
 - (void)reloadData:(BOOL)animated {
-    [self softReloadData];
-    
-    if (animated) {
-        // Preserve filter
-        [self filterDataSource:self.filterText];
-        // Animate in new rows
-        [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationAutomatic];
-    }
-    else {
-        // Reload data source and table view, preserving filter
-        self.filterText = self.filterText;
-    }
+    [self softReloadData:^{
+        if (animated) {
+            // Preserve filter
+            [self filterDataSource:self.filterText];
+            // Animate in new rows
+            [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationAutomatic];
+        }
+        else {
+            // Reload data source and table view, preserving filter
+            self.filterText = self.filterText;
+        }
+    }];
 }
 
-- (void)softReloadData {
-    self.strings = [PDBManager.sharedManager allStrings];
-    self.images = [PDBManager.sharedManager allImages];
+- (void)softReloadData:(void(^)(void))completion {
+    [PDBManager.sharedManager allStrings:^(NSMutableArray<NSString *> *strings) {
+        self.strings = strings;
+        [self filterDataSource:self.filterText];
+        [self.tableView reloadData];
+        if (completion) completion();
+    }];
+    [PDBManager.sharedManager allImages:^(NSMutableArray<NSString *> *images) {
+        self.images = images;
+    }];
 }
 
 - (void)setFilterText:(NSString *)filterText {
@@ -525,9 +532,9 @@ forRowAtIndexPath:(NSIndexPath *)indexPath {
     [self.dataSource removeObjectAtIndex:indexPath.row];
     
     [PDBManager.sharedManager deleteString:item];
-    [self softReloadData];
-    
-    [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:0];
+    [self softReloadData:^{
+        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:0];
+    }];
 }
 
 - (BOOL)tableView:(UITableView *)tableView shouldBeginMultipleSelectionInteractionAtIndexPath:(NSIndexPath *)indexPath {
