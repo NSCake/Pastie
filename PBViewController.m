@@ -7,10 +7,10 @@
 //
 
 #import "PBViewController.h"
-#include <Foundation/Foundation.h>
 #import "NSArray+Map.h"
 #import "NSString+Regex.h"
 #import "PDBManager.h"
+#import "PBMetaTagParser.h"
 #import "Interfaces.h"
 
 #define kReuseID @"PBViewController"
@@ -424,7 +424,37 @@ static BOOL PastieController_isPresented = NO;
                           handler:^(UIAction *action) {
             [self beginEditingTable];
         }],
+        // For debugging, an action to fetch the meta tags of the first URL we find
+        [UIAction actionWithTitle:@"Fetch MetaTags"
+                            image:[UIImage systemImageNamed:@"tag"]
+                       identifier:nil
+                          handler:^(UIAction *action) {
+            [self testing_fetchMetaTags];
+        }]
     ]];
+}
+
+- (void)testing_fetchMetaTags {
+    if (self.dataSource.count > 0) {
+        NSString *firstURL = [self.dataSource pastie_firstWhere:^BOOL (NSString *s, NSUInteger idx) {
+            return ([s hasPrefix:@"http://"] || [s hasPrefix:@"https://"]) && [NSURL URLWithString:s];
+        }];
+        
+        if (firstURL) {
+            NSURL *url = [NSURL URLWithString:firstURL];
+            [PBMetaTagParser fetchMetaTagsForURL:url completion:^(PBMetaTagParser *parser, NSError *error) {
+                if (error) {
+                    [self presentModal:@"Error Fetching Meta Tags" message:error.localizedDescription];
+                } else {
+                    [self presentModal:@"Meta Tags" message:parser.ogTags.description];
+                }
+            }];
+        } else {
+            [self presentModal:@"No Valid URL Found" message:@"Please paste a valid URL."];
+        }
+    } else {
+        [self presentModal:@"No URLs Found" message:@"Please paste some URLs first."];
+    }
 }
 
 - (void)shareFullDatabase {
