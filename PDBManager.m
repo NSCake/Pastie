@@ -351,7 +351,7 @@ NSString * PDBDatabaseDirectory(void) {
     PSQLResult *lastResult = _lastResult;
     
     PSQLResult *lastInsert = [self executeStatement:@"SELECT last_insert_rowid();"];
-    _lastResult = lastResult;
+    _lastResult = lastInsert;
     
     // Pull rowid out of the result and select that row and return it
     if (!lastInsert.isError) {
