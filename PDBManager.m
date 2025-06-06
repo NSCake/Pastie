@@ -21,19 +21,42 @@ NSString * const kPDBCreatePastesTable = @"CREATE TABLE IF NOT EXISTS Paste ( "
     "imagePath TEXT " // Actually just filenames
 ");";
 
+NSString * const kPDBCreateURLsTable = @"CREATE TABLE IF NOT EXISTS URLPaste ( "
+    "id INTEGER PRIMARY KEY, "
+    "domain TEXT, "
+    "url TEXT, "
+    "title TEXT, "
+    "dateLastCopied TEXT, "
+    "dateAdded TEXT "
+");";
+
 NSString * const kPDBDeleteAll = @"DELETE FROM Paste;";
 NSString * const kPDBSaveString = @"INSERT INTO Paste ( string ) VALUES ( $string );";
+NSString * const kPDBSaveURL = @"INSERT INTO URLPaste ( domain, url, title, dateLastCopied, dateAdded ) VALUES ( $domain, $url, $title, $copied, $added );";
 NSString * const kPDBSaveImage = @"INSERT INTO Paste ( imagePath ) VALUES ( $imagePath );";
 NSString * const kPDBDeletePaste = @"DELETE FROM Paste WHERE id = $id;";
 NSString * const kPDBDeletePasteByString = @"DELETE FROM Paste WHERE string = $string;";
 NSString * const kPDBDeletePastesByStrings = @"DELETE FROM Paste WHERE string in $strings;";
 NSString * const kPDBDeletePasteByImage = @"DELETE FROM Paste WHERE imagePath = $imagePath;";
+NSString * const kPDBDeleteURL = @"DELETE FROM URLPaste WHERE id = $id;";
+NSString * const kPDBDeleteURLByString = @"DELETE FROM URLPaste WHERE url = $string;";
+NSString * const kPDBDeleteURLStrings = @"DELETE FROM Paste WHERE string LIKE 'http%' AND NOT LIKE '% %'";
 NSString * const kPDBFindPaste = @"SELECT * FROM Paste WHERE id = $id;";
 NSString * const kPDBListStrings = @"SELECT id, string FROM Paste WHERE string IS NOT NULL ORDER BY id DESC;";
 NSString * const kPDBListImages = @"SELECT id, imagePath FROM Paste WHERE imagePath IS NOT NULL ORDER BY id DESC;";
+NSString * const kPDBListURLs = @"SELECT id, domain, url, title, date FROM URLPaste ORDER BY dateLastCopied DESC;";
+NSString * const kPDBListURLsOfDomain = @"SELECT id, domain, url, title, date FROM URLPaste WHERE domain = $domain ORDER BY id DESC;";
+NSString * const kPDBListURLsOfDate = @"SELECT id, domain, url, title, date FROM URLPaste WHERE date = $date ORDER BY id DESC;";
+NSString * const kPDBFindURLsInPastes = @"SELECT string from Paste WHERE string LIKE 'http%' AND NOT LIKE '% %';";
 
 #define PDBPathForImageWithFilename(filename) [PDBDatabaseDirectory() \
     stringByAppendingPathComponent:[@"Images/" \
+        stringByAppendingString:filename \
+    ] \
+]
+
+#define PDBPathForThumbnailWithFilename(filename) [PDBDatabaseDirectory() \
+    stringByAppendingPathComponent:[@"Thumbs/" \
         stringByAppendingString:filename \
     ] \
 ]
@@ -239,6 +262,7 @@ NSString * PDBDatabaseDirectory(void) {
 
 - (void)createTables {
     [self executeStatement:kPDBCreatePastesTable];
+    [self executeStatement:kPDBCreateURLsTable];
 }
 
 - (id)objectForColumnIndex:(int)columnIdx stmt:(sqlite3_stmt*)stmt {
@@ -388,6 +412,38 @@ NSString * PDBDatabaseDirectory(void) {
     
     return ![self executeStatement:kPDBSaveString arguments:@{
         @"$string": string
+    }].isError;
+}
+
+- (BOOL)addURL:(NSURL *)url resolvingTitle:(void(^)(void))callback {
+    // TODO: Strip query parameters, except for "context" from reddit.com
+
+    [PBMetaTagParser fetchMetaTagsForURL:url completion:^(PBMetaTagParser *parser, NSError *error) {
+        if (error) {
+            // Save URL without a title
+            [self addURL:url title:nil];
+        } else {
+            // TODO: store redirected URL as well as original URL…
+            [self addURL:url metadata:parser];
+        }
+        
+        if (callback) callback();
+    }];
+
+    return [self addURL:url title:nil];
+}
+
+- (BOOL)addURL:(NSURL *)url metadata:(PBMetaTagParser *)metadata {
+    if (!url) {
+        return NO;
+    }
+    
+    return ![self executeStatement:kPDBSaveURL arguments:@{
+        @"$domain": url.host,
+        @"$url": url.absoluteString,
+        @"$title": metadata.title ?: NSNull.null,
+        @"$added": [self.dateFieldFormatter stringFromDate:NSDate.date],
+        @"$copied": [self.dateFieldFormatter stringFromDate:NSDate.date],
     }].isError;
 }
 
@@ -577,6 +633,29 @@ NSString * PDBDatabaseDirectory(void) {
     }
     
     [self open];
+    callback(nil);
+}
+
+#pragma mark Migrations
+
+- (void)migrateURLsToURLTable:(void(^)(NSError *))callback {
+    // Create the URL table (it should already exist, but who cares)
+    [self executeStatement:kPDBCreateURLsTable];
+    
+    // Find the URLs
+    PSQLResult *urls = [self executeStatement:kPDBFindURLsInPastes];
+    
+    // Add each URL to the table; it won't have a title yet
+    for (NSArray<NSString *> *row in urls.rows) {
+        NSURL *url = [NSURL URLWithString:row[0]];
+        [self addURL:url title:nil];
+    }
+    
+    if (!urls.isError) {
+        // Delete the old URLs
+        [self executeStatement:kPDBDeleteURLStrings];
+    }
+    
     callback(nil);
 }
 

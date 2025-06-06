@@ -32,10 +32,13 @@ NS_ASSUME_NONNULL_BEGIN
 #pragma mark Pastes
 
 - (BOOL)addStrings:(NSArray<NSString *> *)string;
+- (BOOL)addURL:(NSURL *)url resolvingTitle:(nullable void(^)(void))callback;
+- (BOOL)addURL:(NSURL *)url title:(nullable NSString *)title;
 - (BOOL)addImages:(NSArray<UIImage *> *)image;
 
 - (void)deleteStrings:(NSArray<NSString *> *)strings;
 - (void)deleteString:(NSString *)string;
+- (void)deleteURL:(NSString *)url;
 - (void)deleteImage:(NSString *)imagePath;
 
 - (NSMutableArray<NSString *> *)allStrings;
@@ -52,6 +55,10 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)clearAllHistory;
 - (void)destroyDatabase:(void(^)(NSError *))errorCallback;
 - (void)importDatabase:(NSURL *)fileURL backupFirst:(BOOL)backup callback:(void(^)(NSError * _Nullable))callback;
+
+#pragma mark Migrations
+
+- (void)migrateURLsToURLTable:(void(^)(NSError * _Nullable))callback;
 
 @end
 
