@@ -246,9 +246,9 @@ NSString * PDBDatabaseDirectory(void) {
     
     switch (columnType) {
         case SQLITE_INTEGER:
-            return @(sqlite3_column_int64(stmt, columnIdx)).stringValue;
+            return [NSString stringWithFormat:@"%lld", sqlite3_column_int64(stmt, columnIdx)];
         case SQLITE_FLOAT:
-            return  @(sqlite3_column_double(stmt, columnIdx)).stringValue;
+            return [NSString stringWithFormat:@"%f", sqlite3_column_double(stmt, columnIdx)];
         case SQLITE_BLOB:
             return [NSString stringWithFormat:@"Data (%@ bytes)",
                 @([self dataForColumnIndex:columnIdx stmt:stmt].length)
