@@ -36,14 +36,16 @@ struct SaveToPastie: AppIntent {
     var feedbackLevel: FeedbackLevel
     
     func perform() async throws -> some IntentResult {
+        let db: PDBManager = try await .open()
+        
         if UIPasteboard.general.hasStrings {
             let strings = UIPasteboard.general.strings!
-            PDBManager.shared.add(UIPasteboard.general.strings!)
+            await db.add(UIPasteboard.general.strings!)
             return .result(dialog: "Saved \(strings.count) items(s)")
         }
         else if UIPasteboard.general.hasURLs {
             let urls = UIPasteboard.general.urls!.map(\.absoluteString)
-            PDBManager.shared.add(urls)
+            await db.add(urls)
             return .result(dialog: "Saved \(urls.count) URL(s)")
         }
         else {
