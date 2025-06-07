@@ -24,3 +24,4 @@ profile
 DerivedData
 *.xcbkptlist
 xcshareddata
+*.html
