@@ -87,15 +87,42 @@ NSString * PDBDatabaseDirectory(void) {
 @end
 
 @implementation PDBManager
+static dispatch_queue_t dbQueue;
 
-+ (instancetype)sharedManager {
-    static PDBManager *shared = nil;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        shared = [self new];
-    });
++ (void)open:(NS_NOESCAPE void (^)(PDBManager *db, NSError *error))openHandler {
+    NSParameterAssert(openHandler);
     
-    return shared;
+    static PDBManager *sharedInstance = nil;
+    
+    if (!dbQueue) {
+        dbQueue = dispatch_queue_create("com.nscake.pastie.dbqueue", DISPATCH_QUEUE_SERIAL);
+        dispatch_queue_set_specific(
+            dbQueue,
+            (__bridge const void *)dbQueue,
+            (__bridge void *)dbQueue,
+            NULL
+        );
+    }
+    
+    // Create and initialize the database on the dbQueue
+    dispatch_async(dbQueue, ^{
+        
+        if (!sharedInstance) {
+            sharedInstance = [PDBManager new];
+        }
+        
+        if ([sharedInstance open]) {
+            openHandler(sharedInstance, nil);
+        } else {
+            NSError *error = [NSError errorWithDomain:@"PDBManager" code:0 userInfo:@{
+                NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Failed to open database at path: %@", sharedInstance.path]
+            }];
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                openHandler(nil, error);
+            });
+        }
+    });
 }
 
 - (id)init {
@@ -309,6 +336,11 @@ NSString * PDBDatabaseDirectory(void) {
 }
 
 - (PSQLResult *)executeStatement:(NSString *)sql arguments:(NSDictionary *)args {
+    NSAssert(
+        dispatch_get_specific((__bridge const void *)(dbQueue)) != NULL,
+        @"Only access the DB on the DB queue"
+    );
+    
     if (![self open]) {
         return nil;
     }
@@ -372,10 +404,10 @@ NSString * PDBDatabaseDirectory(void) {
 
 - (PSQLResult *)lastInsert {
     // Cache last result so we don't overwrite it with this operation
-    PSQLResult *lastResult = _lastResult;
+//    PSQLResult *lastResult = _lastResult;
     
     PSQLResult *lastInsert = [self executeStatement:@"SELECT last_insert_rowid();"];
-    _lastResult = lastInsert;
+//    _lastResult = lastInsert;
     
     // Pull rowid out of the result and select that row and return it
     if (!lastInsert.isError) {
@@ -415,7 +447,13 @@ NSString * PDBDatabaseDirectory(void) {
     }].isError;
 }
 
-- (BOOL)addURL:(NSURL *)url resolvingTitle:(void(^)(void))callback {
+- (void)addStrings:(NSArray<NSString *> *)strings callback:(NS_NOESCAPE void(^)(BOOL success))callback {
+    [self accessDB:^BOOL{
+        return [self addStrings:strings];
+    } boolCompletion:callback];
+}
+
+- (BOOL)addURL:(NSURL *)url resolvingTitle:(NS_NOESCAPE void(^)(void))callback {
     // TODO: Strip query parameters, except for "context" from reddit.com
 
     [PBMetaTagParser fetchMetaTagsForURL:url completion:^(PBMetaTagParser *parser, NSError *error) {
@@ -445,6 +483,12 @@ NSString * PDBDatabaseDirectory(void) {
         @"$added": [self.dateFieldFormatter stringFromDate:NSDate.date],
         @"$copied": [self.dateFieldFormatter stringFromDate:NSDate.date],
     }].isError;
+}
+
+- (void)addURL:(NSURL *)url title:(nullable NSString *)title callback:(NS_NOESCAPE void(^)(BOOL success))callback {
+    [self accessDB:^BOOL{
+        return [self addURL:url title:title];
+    } boolCompletion:callback];
 }
 
 - (BOOL)addImages:(NSArray<UIImage *> *)images {
@@ -485,16 +529,34 @@ NSString * PDBDatabaseDirectory(void) {
     return YES;
 }
 
+- (void)addImages:(NSArray<UIImage *> *)images callback:(NS_NOESCAPE void(^)(BOOL success))callback {
+    [self accessDB:^BOOL{
+        return [self addImages:images];
+    } boolCompletion:callback];
+}
+
 - (void)deleteStrings:(NSArray<NSString *> *)strings {
     for (NSString *s in strings) {
         [self deleteString:s];
     }
 }
 
+- (void)deleteStrings:(NSArray<NSString *> *)strings callback:(NS_NOESCAPE void(^)(void))callback {
+    [self accessDB:^{
+        [self deleteStrings:strings];
+    } voidCompletion:callback];
+}
+
 - (void)deleteString:(NSString *)string {
     [self executeStatement:kPDBDeletePasteByString arguments:@{
         @"$string": string
     }];
+}
+
+- (void)deleteString:(NSString *)string callback:(NS_NOESCAPE void(^)(void))callback {
+    [self accessDB:^{
+        [self deleteString:string];
+    } voidCompletion:callback];
 }
 
 - (void)deleteURL:(NSString *)url {
@@ -504,10 +566,22 @@ NSString * PDBDatabaseDirectory(void) {
 
 }
 
+- (void)deleteURL:(NSString *)url callback:(NS_NOESCAPE void(^)(void))callback {
+    [self accessDB:^{
+        [self deleteURL:url];
+    } voidCompletion:callback];
+}
+
 - (void)deleteImage:(NSString *)imagePath {
     [self executeStatement:kPDBDeletePasteByImage arguments:@{
         @"$imagePath": imagePath
     }];
+}
+
+- (void)deleteImage:(NSString *)imagePath callback:(NS_NOESCAPE void(^)(void))callback {
+    [self accessDB:^{
+        [self deleteImage:imagePath];
+    } voidCompletion:callback];
 }
 
 /// Not entirely sure why I broke this out; it won't be that useful for much else besides `allStrings`
@@ -532,42 +606,38 @@ NSString * PDBDatabaseDirectory(void) {
 }
 
 // Callback-based versions
-- (void)allStrings:(void(^)(NSMutableArray<NSString *> *strings))callback {
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        NSMutableArray<NSString *> *result = [self allStrings];
-        if (callback) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                callback(result);
-            });
-        }
-    });
+- (void)allStrings:(NS_NOESCAPE void(^)(NSMutableArray<NSString *> *strings))callback {
+    [self accessDB:^id{
+        return [self allStrings];
+    } completion:callback];
 }
 
-- (void)allImages:(void(^)(NSMutableArray<NSString *> *images))callback {
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        NSMutableArray<NSString *> *result = [self allImages];
-        if (callback) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                callback(result);
-            });
-        }
-    });
+- (void)allImages:(NS_NOESCAPE void(^)(NSMutableArray<NSString *> *images))callback {
+    [self accessDB:^id{
+        return [self allImages];
+    } completion:callback];
 }
 
 #pragma mark Data Management
 
 - (void)clearAllHistory {
     // Delete images from disk first
-    NSArray<NSString *> *images = [self allImages];
-    for (NSString *filename in images) {
-        NSString *path = [self pathForImageWithName:filename];
-        [NSFileManager.defaultManager removeItemAtPath:path error:nil];
-    }
+//    NSArray<NSString *> *images = [self allImages];
+//    for (NSString *filename in images) {
+//        NSString *path = [self pathForImageWithName:filename];
+//        [NSFileManager.defaultManager removeItemAtPath:path error:nil];
+//    }
     
     [self executeStatement:kPDBDeleteAll];
 }
 
-- (void)destroyDatabase:(void(^)(NSError *))errorCallback {
+- (void)clearAllHistory:(NS_NOESCAPE void(^)(void))callback {
+    [self accessDB:^{
+        [self clearAllHistory];
+    } voidCompletion:callback];
+}
+
+- (void)destroyDatabase:(NS_NOESCAPE void(^)(NSError *))errorCallback {
     [self close];
     
     // Skip file deletion if file does not exist
@@ -585,7 +655,7 @@ NSString * PDBDatabaseDirectory(void) {
     }
 }
 
-- (void)importDatabase:(NSURL *)fileURL backupFirst:(BOOL)backup callback:(void(^)(NSError *))callback {
+- (void)importDatabase:(NSURL *)fileURL backupFirst:(BOOL)backup callback:(NS_NOESCAPE void(^)(NSError *))callback {
     NSString *path = fileURL.path;
     
     // Ensure file exists at the given path
@@ -638,7 +708,7 @@ NSString * PDBDatabaseDirectory(void) {
 
 #pragma mark Migrations
 
-- (void)migrateURLsToURLTable:(void(^)(NSError *))callback {
+- (void)migrateURLsToURLTable:(NS_NOESCAPE void(^)(NSError *))callback {
     // Create the URL table (it should already exist, but who cares)
     [self executeStatement:kPDBCreateURLsTable];
     
@@ -657,6 +727,68 @@ NSString * PDBDatabaseDirectory(void) {
     }
     
     callback(nil);
+}
+
+- (BOOL)addURL:(NSURL *)url title:(nullable NSString *)title {
+    NSParameterAssert(url);
+    
+    return ![self executeStatement:kPDBSaveURL arguments:@{
+        @"$domain": url.host ?: NSNull.null,
+        @"$url": url.absoluteString ?: NSNull.null,
+        @"$title": title ?: NSNull.null,
+        @"$added": [self.dateFieldFormatter stringFromDate:NSDate.date],
+        @"$copied": [self.dateFieldFormatter stringFromDate:NSDate.date],
+    }].isError;
+}
+
+#pragma mark - Private Helpers
+
+/// Helper to perform database operations on the dedicated serial queue
+/// @param dbWork Block that performs the actual database operation
+/// @param completion Block that will be called on the main queue with the result
+- (void)accessDB:(id (^)(void))dbWork completion:(void (^)(id result))completion {
+    NSParameterAssert(dbWork);
+    
+    dispatch_async(dbQueue, ^{
+        id result = dbWork();
+        
+        if (completion) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                completion(result);
+            });
+        }
+    });
+}
+
+- (void)accessDB:(void (^)(void))dbWork {
+    [self accessDB:^id {
+        dbWork();
+        return nil;
+    } completion:nil];
+}
+
+- (void)accessDB:(void (^)(void))dbWork voidCompletion:(void (^)())completion {
+    if (!completion) {
+        return [self accessDB:dbWork];
+    }
+    
+    [self accessDB:^id {
+        dbWork();
+        return nil;
+    } completion:^void (id _) {
+        completion();
+    }];
+}
+
+- (void)accessDB:(BOOL (^)())dbWork boolCompletion:(void (^)(BOOL success))completion {
+    [self accessDB:^id {
+        BOOL success = dbWork();
+        return @(success);
+    } completion:^(id result) {
+        if (completion) {
+            completion([result boolValue]);
+        }
+    }];
 }
 
 @end

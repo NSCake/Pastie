@@ -48,6 +48,8 @@ static BOOL PastieController_isPresented = NO;
 @end
 
 @interface PBViewController () <UISearchControllerDelegate, UISearchResultsUpdating>
+@property (nonatomic, readonly) PDBManager *pasteDB;
+
 @property (nonatomic) NSMutableArray<NSString *> *strings;
 @property (nonatomic) NSMutableArray<NSString *> *images;
 @property (nonatomic) NSMutableArray<NSString *> *dataSource;
@@ -102,7 +104,15 @@ static BOOL PastieController_isPresented = NO;
     self.tableView.allowsMultipleSelectionDuringEditing = YES;
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
     [self.tableView registerClass:UITableViewCell.self forCellReuseIdentifier:kReuseID];
-    [self reloadData:NO];
+    
+    [PDBManager open:^(PDBManager *db, NSError * _Nullable error) {
+        if (error) {
+            
+        }
+        
+        _pasteDB = db;
+        [self reloadData:NO];
+    }];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -130,10 +140,10 @@ static BOOL PastieController_isPresented = NO;
     self.window = self.view.window;
     [self.window makeKeyWindow];
     
-    if (PDBManager.sharedManager.lastResult.isError) {
+    if (self.pasteDB.lastResult.isError) {
         UIAlertController *alert = [UIAlertController
             alertControllerWithTitle:@"Error"
-            message:PDBManager.sharedManager.lastResult.message
+            message:self.pasteDB.lastResult.message
             preferredStyle:UIAlertControllerStyleAlert
         ];
         [alert addAction:[UIAlertAction actionWithTitle:@"Delete Corrupt Database"
@@ -231,8 +241,9 @@ static BOOL PastieController_isPresented = NO;
 
 - (void)addPaste {
     if (UIPasteboard.generalPasteboard.hasStrings) {
-        [PDBManager.sharedManager addStrings:UIPasteboard.generalPasteboard.strings];
-        [self reloadData:YES];
+        [self.pasteDB addStrings:UIPasteboard.generalPasteboard.strings callback:^(BOOL success) {
+            [self reloadData:YES];
+        }];
     }
     else {
         UIAlertController *alert = [UIAlertController
@@ -281,14 +292,16 @@ static BOOL PastieController_isPresented = NO;
     [alert addAction:[UIAlertAction actionWithTitle:self.trashButtonTitle
         style:UIAlertActionStyleDestructive
         handler:^(UIAlertAction *action) {
+            id completion = ^{
+                [self reloadData:YES];
+                [self endEditingTable];
+            };
+        
             if (strings.count) {
-                [PDBManager.sharedManager deleteStrings:strings];
+                [self.pasteDB deleteStrings:strings callback:completion];
+            } else {
+                [self.pasteDB clearAllHistory:completion];
             }
-            else {
-                [PDBManager.sharedManager clearAllHistory];
-            }
-            [self reloadData:YES];
-            [self endEditingTable];
         }
     ]];
     [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
@@ -305,7 +318,7 @@ static BOOL PastieController_isPresented = NO;
     [alert addAction:[UIAlertAction actionWithTitle:@"Yes, Delete the Database"
         style:UIAlertActionStyleDestructive
         handler:^(UIAlertAction *action) {
-            [PDBManager.sharedManager destroyDatabase:^(NSError *error) {
+            [self.pasteDB destroyDatabase:^(NSError *error) {
                 UIAlertController(@"Error", error.localizedDescription);
             }];
         }
@@ -331,15 +344,17 @@ static BOOL PastieController_isPresented = NO;
 }
 
 - (void)softReloadData:(void(^)(void))completion {
-    [PDBManager.sharedManager allStrings:^(NSMutableArray<NSString *> *strings) {
-        self.strings = strings;
-        [self filterDataSource:self.filterText];
-        [self.tableView reloadData];
-        if (completion) completion();
+    [self.pasteDB allStrings:^(NSMutableArray<NSString *> *strings) {
+        [self.pasteDB allImages:^(NSMutableArray<NSString *> *images) {
+            self.strings = strings;
+            self.images = images;
+            [self filterDataSource:self.filterText];
+            [self.tableView reloadData];
+            
+            if (completion) completion();
+        }];
     }];
-    [PDBManager.sharedManager allImages:^(NSMutableArray<NSString *> *images) {
-        self.images = images;
-    }];
+    
 }
 
 - (void)setFilterText:(NSString *)filterText {
@@ -383,7 +398,7 @@ static BOOL PastieController_isPresented = NO;
     if ([fileURL.pathExtension isEqualToString:@"db"]) {
         [self promptUserToImportDatabaseWith:^(BOOL shouldImport) {
             if (shouldImport) {
-                [PDBManager.sharedManager importDatabase:fileURL backupFirst:YES callback:^(NSError *error) {
+                [self.pasteDB importDatabase:fileURL backupFirst:YES callback:^(NSError *error) {
                     if (error) {
                         [self presentModal:@"Error Importing Pastes" message:error.localizedDescription];
                     }
@@ -446,7 +461,7 @@ static BOOL PastieController_isPresented = NO;
                 if (error) {
                     [self presentModal:@"Error Fetching Meta Tags" message:error.localizedDescription];
                 } else {
-                    [self presentModal:@"Meta Tags" message:parser.ogTags.description];
+                    [self presentModal:@"Meta Tags" message:parser.description];
                 }
             }];
         } else {
@@ -458,7 +473,7 @@ static BOOL PastieController_isPresented = NO;
 }
 
 - (void)shareFullDatabase {
-    NSURL *filePath = [NSURL fileURLWithPath:PDBManager.sharedManager.databasePath];
+    NSURL *filePath = [NSURL fileURLWithPath:self.pasteDB.databasePath];
     UIActivityViewController *shareSheet = [[UIActivityViewController alloc]
         initWithActivityItems:@[filePath] applicationActivities:nil
     ];
@@ -539,7 +554,7 @@ static BOOL PastieController_isPresented = NO;
     }
     
     id item = self.dataSource[indexPath.row];
-    PDBManager.sharedManager.lastCopy = item;
+    self.pasteDB.lastCopy = item;
     UIPasteboard.generalPasteboard.string = item;
     
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
@@ -561,9 +576,10 @@ forRowAtIndexPath:(NSIndexPath *)indexPath {
     NSString *item = self.dataSource[indexPath.row];
     [self.dataSource removeObjectAtIndex:indexPath.row];
     
-    [PDBManager.sharedManager deleteString:item];
-    [self softReloadData:^{
-        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:0];
+    [self.pasteDB deleteString:item callback:^{
+        [self softReloadData:^{
+            [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:0];
+        }];
     }];
 }
 
