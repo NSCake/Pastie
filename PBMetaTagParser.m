@@ -27,6 +27,13 @@
     return self;
 }
 
+- (id)description {
+    return [NSString
+        stringWithFormat:@"<PBMetaTagParser: %p\n\tsite: %@,\n\ttitle: %@,\n\turl: %@,\n\timage: %@,\n\tdesc: %@>",
+        self, self.site, self.title, self.url, self.image, self.desc
+    ];
+}
+
 - (void)parser:(NSXMLParser *)parser didStartElement:(NSString *)elementName
   namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qName
     attributes:(NSDictionary<NSString *,NSString *> *)attributes {
@@ -95,7 +102,7 @@
                 PBMetaTagParser *parser = [PBMetaTagParser new];
                 xmlParser.delegate = parser;
                 
-                if ([xmlParser parse]) {
+                if (![xmlParser parse]) {
                     [parser parserDidEndDocument:xmlParser];
                 }
                 
