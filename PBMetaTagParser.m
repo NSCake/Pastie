@@ -80,6 +80,30 @@
     _url = self.ogTags[@"og:url"];
     _image = self.ogTags[@"og:image"];
     _desc = self.ogTags[@"og:description"];
+    
+    _url = [self cleanedURL:_url];
+}
+
+- (NSString *)cleanedURL:(NSString *)urlString {
+    NSURL *url = [NSURL URLWithString:urlString];
+    
+    // Strip query parameters from these domains
+    NSArray<NSString *> *stripDomains = @[
+        @"tiktok.com"
+    ];
+    
+    for (NSString *domain in stripDomains) {
+        if ([url.host hasSuffix:domain]) {
+            // Use URLComponents to strip the query
+            NSURLComponents *components = [NSURLComponents
+                componentsWithURL:url resolvingAgainstBaseURL:NO
+            ];
+            components.query = nil;
+            return components.URL.absoluteString;
+        }
+    }
+    
+    return urlString;
 }
 
 + (void)fetchMetaTagsForURL:(NSURL *)url completion:(void(^)(PBMetaTagParser *parser, NSError *error))callback {
