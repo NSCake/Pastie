@@ -25,6 +25,7 @@ NSString * const kPDBCreateURLsTable = @"CREATE TABLE IF NOT EXISTS URLPaste ( "
     "id INTEGER PRIMARY KEY, "
     "domain TEXT, "
     "url TEXT, "
+    "url_orig TEXT, " // Original URL before redirects
     "title TEXT, "
     "dateLastCopied TEXT, "
     "dateAdded TEXT "
@@ -32,7 +33,7 @@ NSString * const kPDBCreateURLsTable = @"CREATE TABLE IF NOT EXISTS URLPaste ( "
 
 NSString * const kPDBDeleteAll = @"DELETE FROM Paste;";
 NSString * const kPDBSaveString = @"INSERT INTO Paste ( string ) VALUES ( $string );";
-NSString * const kPDBSaveURL = @"INSERT INTO URLPaste ( domain, url, title, dateLastCopied, dateAdded ) VALUES ( $domain, $url, $title, $copied, $added );";
+NSString * const kPDBSaveURL = @"INSERT INTO URLPaste ( domain, url, url_orig, title, dateLastCopied, dateAdded ) VALUES ( $domain, $url, $url_orig, $title, $copied, $added );";
 NSString * const kPDBSaveImage = @"INSERT INTO Paste ( imagePath ) VALUES ( $imagePath );";
 NSString * const kPDBDeletePaste = @"DELETE FROM Paste WHERE id = $id;";
 NSString * const kPDBDeletePasteByString = @"DELETE FROM Paste WHERE string = $string;";
@@ -478,7 +479,8 @@ static dispatch_queue_t dbQueue;
     
     return ![self executeStatement:kPDBSaveURL arguments:@{
         @"$domain": url.host,
-        @"$url": url.absoluteString,
+        @"$url": metadata.url.absoluteString,
+        @"$url_orig": url.absoluteString, // Original URL before redirects
         @"$title": metadata.title ?: NSNull.null,
         @"$added": [self.dateFieldFormatter stringFromDate:NSDate.date],
         @"$copied": [self.dateFieldFormatter stringFromDate:NSDate.date],

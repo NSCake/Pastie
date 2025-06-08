@@ -81,7 +81,7 @@
     _image = self.ogTags[@"og:image"];
     _desc = self.ogTags[@"og:description"];
     
-    _url = [self cleanedURL:_url];
+    // _url = [self cleanedURL:_url];
 }
 
 - (NSString *)cleanedURL:(NSString *)urlString {
