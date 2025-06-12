@@ -8,8 +8,6 @@
 
 #import "../Interfaces.h"
 
-void ShowPastie();
-
 %hook UIInputSwitcherView
 - (void)_reloadInputSwitcherItems {
     %orig;
@@ -45,9 +43,3 @@ void ShowPastie();
     }
 }
 %end
-
-// IPC //
-
-void ShowPastie() {
-    
-}
