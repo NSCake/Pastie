@@ -11,6 +11,7 @@
 #import <Foundation/Foundation.h>
 #import "NSArray+Map.h"
 #import "PBMetaTagParser.h"
+#import "PBURLPaste.h"
 #import <sqlite3.h>
 
 NSString * const kAppGroupIdentifier = @"group.com.nscake.pastie";
@@ -31,7 +32,8 @@ NSString * const kPDBCreateURLsTable = @"CREATE TABLE IF NOT EXISTS URLPaste ( "
     "dateAdded TEXT "
 ");";
 
-NSString * const kPDBDeleteAll = @"DELETE FROM Paste;";
+NSString * const kPDBDeleteAllStrings = @"DELETE FROM Paste;";
+NSString * const kPDBDeleteAllURLs = @"DELETE FROM URLPaste;";
 NSString * const kPDBSaveString = @"INSERT INTO Paste ( string ) VALUES ( $string );";
 NSString * const kPDBSaveURL = @"INSERT INTO URLPaste ( domain, url, url_orig, title, dateLastCopied, dateAdded ) VALUES ( $domain, $url, $url_orig, $title, $copied, $added );";
 NSString * const kPDBSaveImage = @"INSERT INTO Paste ( imagePath ) VALUES ( $imagePath );";
@@ -39,14 +41,14 @@ NSString * const kPDBDeletePaste = @"DELETE FROM Paste WHERE id = $id;";
 NSString * const kPDBDeletePasteByString = @"DELETE FROM Paste WHERE string = $string;";
 NSString * const kPDBDeletePastesByStrings = @"DELETE FROM Paste WHERE string in $strings;";
 NSString * const kPDBDeletePasteByImage = @"DELETE FROM Paste WHERE imagePath = $imagePath;";
-NSString * const kPDBDeleteURL = @"DELETE FROM URLPaste WHERE id = $id;";
+NSString * const kPDBDeleteURL = @"DELETE FROM URLPaste WHERE url_orig = $url_orig;";
 NSString * const kPDBDeleteURLByString = @"DELETE FROM URLPaste WHERE url = $string;";
 NSString * const kPDBDeleteURLStrings = @"DELETE FROM Paste WHERE string LIKE 'http%' AND NOT LIKE '% %'";
 NSString * const kPDBFindPaste = @"SELECT * FROM Paste WHERE id = $id;";
 NSString * const kPDBListStrings = @"SELECT id, string FROM Paste WHERE string IS NOT NULL ORDER BY id DESC;";
 NSString * const kPDBListImages = @"SELECT id, imagePath FROM Paste WHERE imagePath IS NOT NULL ORDER BY id DESC;";
-NSString * const kPDBListURLs = @"SELECT id, domain, url, title, date FROM URLPaste ORDER BY dateLastCopied DESC;";
-NSString * const kPDBListURLsOfDomain = @"SELECT id, domain, url, title, date FROM URLPaste WHERE domain = $domain ORDER BY id DESC;";
+NSString * const kPDBListURLs = @"SELECT id, domain, url, url_orig, title, dateLastCopied, dateAdded FROM URLPaste ORDER BY dateLastCopied DESC;";
+NSString * const kPDBListURLsOfDomain = @"SELECT id, domain, url, url_orig, title, dateLastCopied, dateAdded FROM URLPaste WHERE domain = $domain ORDER BY id DESC;";
 NSString * const kPDBListURLsOfDate = @"SELECT id, domain, url, title, date FROM URLPaste WHERE date = $date ORDER BY id DESC;";
 NSString * const kPDBFindURLsInPastes = @"SELECT string from Paste WHERE string LIKE 'http%' AND NOT LIKE '% %';";
 
@@ -89,12 +91,10 @@ NSString * PDBDatabaseDirectory(void) {
 
 @implementation PDBManager
 static dispatch_queue_t dbQueue;
+static PDBManager *sharedInstance = nil;
 
-+ (void)open:(NS_NOESCAPE void (^)(PDBManager *db, NSError *error))openHandler {
-    NSParameterAssert(openHandler);
-    
-    static PDBManager *sharedInstance = nil;
-    
+/// Initialize the database queue
++ (void)initialize {
     if (!dbQueue) {
         dbQueue = dispatch_queue_create("com.nscake.pastie.dbqueue", DISPATCH_QUEUE_SERIAL);
         dispatch_queue_set_specific(
@@ -104,16 +104,21 @@ static dispatch_queue_t dbQueue;
             NULL
         );
     }
+}
+
++ (void)open:(NS_NOESCAPE void (^)(PDBManager *db, NSError *error))openHandler {
+    NSParameterAssert(openHandler);
     
-    // Create and initialize the database on the dbQueue
+    // Create and initialize the database singleton on the dbQueue
     dispatch_async(dbQueue, ^{
-        
         if (!sharedInstance) {
             sharedInstance = [PDBManager new];
         }
         
-        if ([sharedInstance open]) {
-            openHandler(sharedInstance, nil);
+        if ([sharedInstance open]) { // Safe to call repeatedly
+            dispatch_async(dispatch_get_main_queue(), ^{
+                openHandler(sharedInstance, nil);
+            });
         } else {
             NSError *error = [NSError errorWithDomain:@"PDBManager" code:0 userInfo:@{
                 NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Failed to open database at path: %@", sharedInstance.path]
@@ -127,6 +132,7 @@ static dispatch_queue_t dbQueue;
 }
 
 - (id)init {
+    NSAssert(sharedInstance == nil, @"PDBManager should be a singleton, something went wrong");
     self = [super init];
     
     if (self) {
@@ -290,6 +296,10 @@ static dispatch_queue_t dbQueue;
 
 - (void)createTables {
     [self executeStatement:kPDBCreatePastesTable];
+    
+    // Temporarily destroy the URLs table if it exists
+    [self executeStatement:@"DROP TABLE IF EXISTS URLPaste;"];
+    
     [self executeStatement:kPDBCreateURLsTable];
 }
 
@@ -423,6 +433,24 @@ static dispatch_queue_t dbQueue;
 - (NSString *)databasePath { return self.path; }
 
 #pragma mark Pastes
+- (BOOL)addFromClipboard:(UIPasteboard *)clipboard {
+    // Prefer URL, then string, then image
+    if (clipboard.hasURLs) {
+        return [self addURL:clipboard.URL title:nil];
+    } else if (clipboard.hasStrings) {
+        return [self addStrings:clipboard.strings];
+    } else if (clipboard.image) {
+        return [self addImages:@[clipboard.image]];
+    }
+
+    return NO;
+}
+
+- (void)addFromClipboard:(UIPasteboard *)clipboard callback:(NS_NOESCAPE void(^)(BOOL success))callback {
+    [self accessDB:^BOOL{
+        return [self addFromClipboard:clipboard];
+    } boolCompletion:callback];
+}
 
 - (BOOL)addStrings:(NSArray<NSString *> *)strings {
     if (!strings.count) return YES;
@@ -479,7 +507,7 @@ static dispatch_queue_t dbQueue;
     
     return ![self executeStatement:kPDBSaveURL arguments:@{
         @"$domain": url.host,
-        @"$url": metadata.url.absoluteString,
+        @"$url": metadata.url,
         @"$url_orig": url.absoluteString, // Original URL before redirects
         @"$title": metadata.title ?: NSNull.null,
         @"$added": [self.dateFieldFormatter stringFromDate:NSDate.date],
@@ -561,16 +589,27 @@ static dispatch_queue_t dbQueue;
     } voidCompletion:callback];
 }
 
-- (void)deleteURL:(NSString *)url {
-    [self executeStatement:kPDBDeleteURLByString arguments:@{
-        @"$string": url
+- (void)deleteURLPaste:(PBURLPaste *)urlPaste {
+    [self executeStatement:kPDBDeleteURL arguments:@{
+        @"$url_orig": urlPaste.originalURL
     }];
-
 }
 
-- (void)deleteURL:(NSString *)url callback:(NS_NOESCAPE void(^)(void))callback {
+- (void)deleteURLPaste:(PBURLPaste *)urlPaste callback:(NS_NOESCAPE void(^)(void))callback {
     [self accessDB:^{
-        [self deleteURL:url];
+        [self deleteURLPaste:urlPaste];
+    } voidCompletion:callback];
+}
+
+- (void)deleteURLPastes:(NSArray<PBURLPaste *> *)urlPastes {
+    for (PBURLPaste *urlPaste in urlPastes) {
+        [self deleteURLPaste:urlPaste];
+    }
+}
+
+- (void)deleteURLPastes:(NSArray<PBURLPaste *> *)urlPastes callback:(NS_NOESCAPE void(^)(void))callback {
+    [self accessDB:^{
+        [self deleteURLPastes:urlPastes];
     } voidCompletion:callback];
 }
 
@@ -622,21 +661,33 @@ static dispatch_queue_t dbQueue;
 
 #pragma mark Data Management
 
-- (void)clearAllHistory {
+- (BOOL)clearHistory:(PBDataType)type {
     // Delete images from disk first
-//    NSArray<NSString *> *images = [self allImages];
-//    for (NSString *filename in images) {
-//        NSString *path = [self pathForImageWithName:filename];
-//        [NSFileManager.defaultManager removeItemAtPath:path error:nil];
-//    }
+    // NSArray<NSString *> *images = [self allImages];
+    // for (NSString *filename in images) {
+    //     NSString *path = [self pathForImageWithName:filename];
+    //     [NSFileManager.defaultManager removeItemAtPath:path error:nil];
+    // }
+
+    switch (type) {
+        case PBDataTypeStrings:
+            [self executeStatement:kPDBDeleteAllStrings];
+            break;
+        case PBDataTypeURLs:
+            [self executeStatement:kPDBDeleteAllURLs];
+            break;
+        default:
+            break;
+    }
     
-    [self executeStatement:kPDBDeleteAll];
+    return !self.lastResult.isError;
 }
 
-- (void)clearAllHistory:(NS_NOESCAPE void(^)(void))callback {
-    [self accessDB:^{
-        [self clearAllHistory];
-    } voidCompletion:callback];
+- (void)clearHistory:(PBDataType)type callback:(NS_NOESCAPE void(^)(NSError *error))callback {
+    [self accessDB:^NSError *{
+        [self clearHistory:type];
+        return self.lastResult.error;
+    } completion:callback];
 }
 
 - (void)destroyDatabase:(NS_NOESCAPE void(^)(NSError *))errorCallback {
@@ -743,6 +794,70 @@ static dispatch_queue_t dbQueue;
     }].isError;
 }
 
+- (BOOL)addURLPaste:(PBURLPaste *)urlPaste {
+    NSParameterAssert(urlPaste);
+    
+    return ![self executeStatement:kPDBSaveURL arguments:@{
+        @"$domain": urlPaste.domain ?: NSNull.null,
+        @"$url": urlPaste.url ?: NSNull.null,
+        @"$url_orig": urlPaste.originalURL ?: urlPaste.url ?: NSNull.null,
+        @"$title": urlPaste.title ?: NSNull.null,
+        @"$copied": [self.dateFieldFormatter stringFromDate:urlPaste.dateLastCopied],
+        @"$added": [self.dateFieldFormatter stringFromDate:urlPaste.dateAdded],
+    }].isError;
+}
+
+- (void)addURLPaste:(PBURLPaste *)urlPaste callback:(NS_NOESCAPE void(^)(BOOL success))callback {
+    [self accessDB:^BOOL{
+        return [self addURLPaste:urlPaste];
+    } boolCompletion:callback];
+}
+
+- (NSMutableArray<PBURLPaste *> *)allURLs {
+    PSQLResult *result = [self executeStatement:kPDBListURLs];
+    if (!result.isError && result.rows.count) {
+        return [result.rows pastie_mapped:^id(NSArray<NSString *> *row, NSUInteger idx) {
+            NSString *domain = row[1];
+            NSURL *url = [NSURL URLWithString:row[2]];
+            NSURL *originalURL = [NSURL URLWithString:row[3]];
+            NSString *title = row[4];
+            
+            NSDate *lastCopied = [self.dateFieldFormatter dateFromString:row[5]] ?: [NSDate date];
+            NSDate *dateAdded = [self.dateFieldFormatter dateFromString:row[6]] ?: [NSDate date];
+            
+            if (url) {
+                return [PBURLPaste
+                    url:originalURL.absoluteString
+                    resolvedURL:url.absoluteString
+                    domain:domain
+                    title:title
+                    dateLastCopied:lastCopied
+                    dateAdded:dateAdded
+                ];
+            }
+            return nil;
+            
+        }].mutableCopy;
+    }
+    
+    return [NSMutableArray new];
+}
+
+- (void)allURLs:(NS_NOESCAPE void(^)(NSMutableArray<PBURLPaste *> *urlPastes))callback {
+    [self accessDB:^id{
+        return [self allURLs];
+    } completion:callback];
+}
+
+- (void)clearAllURLs {
+    [self executeStatement:kPDBDeleteAllURLs];
+}
+
+- (void)clearAllURLs:(NS_NOESCAPE void(^)(void))callback {
+    [self accessDB:^{
+        [self clearAllURLs];
+    } voidCompletion:callback];
+}
 #pragma mark - Private Helpers
 
 /// Helper to perform database operations on the dedicated serial queue
@@ -792,5 +907,4 @@ static dispatch_queue_t dbQueue;
         }
     }];
 }
-
 @end
