@@ -13,8 +13,11 @@
 #import "PDBManager.h"
 #import "PastieWindow.h"
 #import "PBViewController.h"
+
+#ifndef __APPLE__
 #define LIGHTMESSAGING_USE_ROCKETBOOTSTRAP 500
 #import <LightMessaging/LightMessaging.h>
+#endif
 
 #pragma mark Interfaces
 
