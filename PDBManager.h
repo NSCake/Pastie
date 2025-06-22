@@ -12,6 +12,11 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+typedef NS_ENUM(NSUInteger, PBDataType) {
+    PBDataTypeStrings,
+    PBDataTypeURLs
+};
+
 /// Pastie database manager
 @interface PDBManager : NSObject
 

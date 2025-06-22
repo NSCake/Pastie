@@ -50,4 +50,11 @@
     return _keyedRows;
 }
 
+- (NSError *)error {
+    if (!self.isError) return nil;
+    
+    NSDictionary *userInfo = @{ NSLocalizedDescriptionKey: self.message ?: @"Unknown error" };
+    return [NSError errorWithDomain:@"PSQLResultErrorDomain" code:-1 userInfo:userInfo];
+}
+
 @end

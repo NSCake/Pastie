@@ -13,6 +13,9 @@
 		C385B24D2B9E4B6300B081EE /* PBMetaTagParser.m in Sources */ = {isa = PBXBuildFile; fileRef = C385B24C2B9E4B6300B081EE /* PBMetaTagParser.m */; };
 		C385B2552B9E50EA00B081EE /* PastieTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C385B2542B9E50EA00B081EE /* PastieTests.swift */; };
 		C385B25C2B9E52E300B081EE /* PBMetaTagParser.m in Sources */ = {isa = PBXBuildFile; fileRef = C385B24C2B9E4B6300B081EE /* PBMetaTagParser.m */; };
+		C39A508F2DFB9CBC000D6AE6 /* PBURLPaste.m in Sources */ = {isa = PBXBuildFile; fileRef = C39A508E2DFB9CBC000D6AE6 /* PBURLPaste.m */; };
+		C39A50912DFB9CBC000D6AE6 /* PBURLPaste.m in Sources */ = {isa = PBXBuildFile; fileRef = C39A508E2DFB9CBC000D6AE6 /* PBURLPaste.m */; };
+		C39A50922DFB9CBC000D6AE6 /* PBDataSource.m in Sources */ = {isa = PBXBuildFile; fileRef = C39A508C2DFB9CBC000D6AE6 /* PBDataSource.m */; };
 		C3A486B02BBA451E00C56F64 /* NSString+Regex.m in Sources */ = {isa = PBXBuildFile; fileRef = C3A486AF2BBA451E00C56F64 /* NSString+Regex.m */; };
 		C3A9A8FC264B6358008BA505 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C3A9A8FB264B6358008BA505 /* Assets.xcassets */; };
 		C3A9A8FF264B6358008BA505 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C3A9A8FD264B6358008BA505 /* LaunchScreen.storyboard */; };
@@ -74,6 +77,10 @@
 		C385B2522B9E50EA00B081EE /* PastieTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PastieTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C385B2542B9E50EA00B081EE /* PastieTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PastieTests.swift; sourceTree = "<group>"; };
 		C385B25B2B9E528300B081EE /* PastieShortcuts.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PastieShortcuts.entitlements; sourceTree = "<group>"; };
+		C39A508B2DFB9CBC000D6AE6 /* PBDataSource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PBDataSource.h; sourceTree = SOURCE_ROOT; };
+		C39A508C2DFB9CBC000D6AE6 /* PBDataSource.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PBDataSource.m; sourceTree = SOURCE_ROOT; };
+		C39A508D2DFB9CBC000D6AE6 /* PBURLPaste.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PBURLPaste.h; sourceTree = SOURCE_ROOT; };
+		C39A508E2DFB9CBC000D6AE6 /* PBURLPaste.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PBURLPaste.m; sourceTree = SOURCE_ROOT; };
 		C3A486AE2BBA451E00C56F64 /* NSString+Regex.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSString+Regex.h"; sourceTree = SOURCE_ROOT; };
 		C3A486AF2BBA451E00C56F64 /* NSString+Regex.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSString+Regex.m"; sourceTree = SOURCE_ROOT; };
 		C3A9A8F5264B6355008BA505 /* Pastie.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Pastie.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -172,10 +179,14 @@
 				C3075B78283C07D500A4E9A0 /* PastieWindow.m */,
 				C3A9A90C264B6397008BA505 /* PBViewController.h */,
 				C3A9A910264B6397008BA505 /* PBViewController.m */,
+				C39A508B2DFB9CBC000D6AE6 /* PBDataSource.h */,
+				C39A508C2DFB9CBC000D6AE6 /* PBDataSource.m */,
 				C3A9A911264B6398008BA505 /* PDBManager.h */,
 				C3A9A912264B6398008BA505 /* PDBManager.m */,
 				C3A9A90E264B6397008BA505 /* PSQLResult.h */,
 				C3A9A913264B6398008BA505 /* PSQLResult.m */,
+				C39A508D2DFB9CBC000D6AE6 /* PBURLPaste.h */,
+				C39A508E2DFB9CBC000D6AE6 /* PBURLPaste.m */,
 				C385B24B2B9E4B6300B081EE /* PBMetaTagParser.h */,
 				C385B24C2B9E4B6300B081EE /* PBMetaTagParser.m */,
 				C3A9A900264B6358008BA505 /* Info.plist */,
@@ -351,6 +362,8 @@
 				C3A9A915264B6398008BA505 /* NSArray+Map.m in Sources */,
 				C3A9A918264B6398008BA505 /* PSQLResult.m in Sources */,
 				C385B24A2B9C027500B081EE /* AppDelegate.swift in Sources */,
+				C39A50912DFB9CBC000D6AE6 /* PBURLPaste.m in Sources */,
+				C39A50922DFB9CBC000D6AE6 /* PBDataSource.m in Sources */,
 				C3A9A917264B6398008BA505 /* PDBManager.m in Sources */,
 				C3A9A916264B6398008BA505 /* PBViewController.m in Sources */,
 				C3A486B02BBA451E00C56F64 /* NSString+Regex.m in Sources */,
@@ -369,6 +382,7 @@
 				C3BA3CDE2AF9BB8C0012A5D9 /* NSArray+Map.m in Sources */,
 				C3BA3CDF2AF9BB8C0012A5D9 /* PDBManager.h in Sources */,
 				C3BA3CE02AF9BB8C0012A5D9 /* PDBManager.m in Sources */,
+				C39A508F2DFB9CBC000D6AE6 /* PBURLPaste.m in Sources */,
 				C3BA3CE12AF9BB8C0012A5D9 /* PSQLResult.h in Sources */,
 				C3BA3CE22AF9BB8C0012A5D9 /* PSQLResult.m in Sources */,
 				C3BA3CC72AF9B0430012A5D9 /* PastieShortcutsExtension.swift in Sources */,
@@ -622,6 +636,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_WARN_STRICT_PROTOTYPES = NO;
 				CODE_SIGN_ENTITLEMENTS = PastieShortcuts/PastieShortcuts.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
@@ -655,6 +670,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_WARN_STRICT_PROTOTYPES = NO;
 				CODE_SIGN_ENTITLEMENTS = PastieShortcuts/PastieShortcuts.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;

@@ -25,7 +25,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         var token: Int32 = 0
         notify_register_dispatch("com.apple.pasteboard.changed", &token, DispatchQueue.main, { _ in
-            pc.tableViewController.reloadData(true)
+            pc.pasteTables?.forEach { $0.reloadData(true) }
         })
         
         // Check if app was launched from opening a file
@@ -39,6 +39,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     @discardableResult
     func application(_ app: UIApplication, open url: URL,
                      options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
-        return self.pastieController?.tableViewController.tryOpenDatabase(url) ?? false
+        return self.pastieController?.selectedTable?.tryOpenDatabase(url) ?? false
+    }
+}
+
+extension PastieController {
+    var pasteTables: [PBViewController]? {
+        viewControllers?.map { $0 as! PBViewController }
+    }
+    
+    var selectedTable: PBViewController? {
+        selectedViewController as? PBViewController
     }
 }

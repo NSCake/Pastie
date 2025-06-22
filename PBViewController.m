@@ -9,7 +9,6 @@
 #import "PBViewController.h"
 #import "NSArray+Map.h"
 #import "NSString+Regex.h"
-#import "PDBManager.h"
 #import "PBMetaTagParser.h"
 #import "Interfaces.h"
 
@@ -20,13 +19,26 @@
 @end
 
 static BOOL PastieController_isPresented = NO;
+
+@interface PastieController ()
+@property (nonatomic) PBViewController *stringsViewController;
+@property (nonatomic) PBViewController *urlsViewController;
+@end
+
 @implementation PastieController
 
 - (id)init {
-    self = [self initWithRootViewController:[PBViewController new]];
+    self = [super init];
     if (self) {
+        _stringsViewController = [PBViewController stringsPasteViewController];
+        _urlsViewController = [PBViewController urlsPasteViewController];
+        
+        self.viewControllers = @[
+            [[UINavigationController alloc] initWithRootViewController:_stringsViewController],
+            [[UINavigationController alloc] initWithRootViewController:_urlsViewController],
+        ];
+        
         self.modalPresentationStyle = UIModalPresentationFormSheet;
-        _tableViewController = self.viewControllers.firstObject;
         PastieController_isPresented = YES;
     }
     
@@ -48,16 +60,10 @@ static BOOL PastieController_isPresented = NO;
 @end
 
 @interface PBViewController () <UISearchControllerDelegate, UISearchResultsUpdating>
-@property (nonatomic, readonly) PDBManager *pasteDB;
+@property (nonatomic) PBDataType type;
 
-@property (nonatomic) NSMutableArray<NSString *> *strings;
-@property (nonatomic) NSMutableArray<NSString *> *images;
-@property (nonatomic) NSMutableArray<NSString *> *dataSource;
-@property (nonatomic) NSDictionary<NSString*,UIImage*> *pathsToImages;
 
 @property (nonatomic, nonatomic) NSString *computedTitle;
-/// Filtered, or not, and drived from the strings property.
-@property (nonatomic, readonly) NSMutableArray<NSString *> *rows;
 @property (nonatomic) NSString *filterText;
 
 @property (nonatomic) UIWindow *window;
@@ -70,15 +76,65 @@ static BOOL PastieController_isPresented = NO;
 
 @implementation PBViewController
 
-#pragma mark Lifecycle
+#pragma mark - Factory Methods
+
++ (instancetype)type:(PBDataType)type {
+    PBViewController *controller = [PBViewController new];
+    controller.type = type;
+    return controller;
+}
+
++ (instancetype)stringsPasteViewController {
+    return [self type:PBDataTypeStrings];
+}
+
++ (instancetype)urlsPasteViewController {
+    return [self type:PBDataTypeURLs];
+}
+
+#pragma mark - Data Source Delegate
+
+- (PBDataSource *)pastieDataSource {
+    return (id)self.tableView.dataSource;;
+}
+
+- (void)setPastieDataSource:(PBDataSource *)dataSource {
+    self.tableView.dataSource = dataSource;
+    [self reloadData:NO];
+}
+
+- (void)guardHasDataSource {
+    NSAssert(self.pastieDataSource, @"PBViewController must have a valid data source");
+}
+
+- (void)promptToDeleteCorruptDatabase {
+    UIAlertController *alert = [UIAlertController
+        alertControllerWithTitle:@"Error"
+        message:@"Could not open database"
+        preferredStyle:UIAlertControllerStyleAlert
+    ];
+    [alert addAction:[UIAlertAction
+            actionWithTitle:@"Delete Corrupt Database"
+            style:UIAlertActionStyleDestructive
+            handler:^(UIAlertAction *action) {
+                [self didPressDestroy];
+            }
+    ]];
+    
+    [alert addAction:[UIAlertAction actionWithTitle:@"Dismiss" style:UIAlertActionStyleCancel handler:nil]];
+    [self presentViewController:alert animated:YES completion:nil];
+}
+
+#pragma mark - Lifecycle
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    self.tableView.dataSource = nil;
     
     self.title = self.computedTitle;
     self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc]
-        initWithBarButtonSystemItem:UIBarButtonSystemItemTrash
-        target:self action:@selector(didPressTrash)
+                                             initWithBarButtonSystemItem:UIBarButtonSystemItemTrash
+                                             target:self action:@selector(didPressTrash)
     ];
     
     self.navigationItem.rightBarButtonItems = self.defaultRightBarButtonItems;
@@ -104,14 +160,13 @@ static BOOL PastieController_isPresented = NO;
     self.tableView.allowsMultipleSelectionDuringEditing = YES;
     self.tableView.keyboardDismissMode = UIScrollViewKeyboardDismissModeOnDrag;
     [self.tableView registerClass:UITableViewCell.self forCellReuseIdentifier:kReuseID];
-    
-    [PDBManager open:^(PDBManager *db, NSError * _Nullable error) {
+
+    [PBDataSource open:self.type completion:^(PBDataSource *dataSource, NSError *error) {
         if (error) {
-            
+            return [self promptToDeleteCorruptDatabase];
         }
-        
-        _pasteDB = db;
-        [self reloadData:NO];
+
+        self.pastieDataSource = dataSource;
     }];
 }
 
@@ -139,23 +194,6 @@ static BOOL PastieController_isPresented = NO;
     
     self.window = self.view.window;
     [self.window makeKeyWindow];
-    
-    if (self.pasteDB.lastResult.isError) {
-        UIAlertController *alert = [UIAlertController
-            alertControllerWithTitle:@"Error"
-            message:self.pasteDB.lastResult.message
-            preferredStyle:UIAlertControllerStyleAlert
-        ];
-        [alert addAction:[UIAlertAction actionWithTitle:@"Delete Corrupt Database"
-            style:UIAlertActionStyleDestructive
-            handler:^(UIAlertAction *action) {
-                [self didPressDestroy];
-            }
-        ]];
-        [alert addAction:[UIAlertAction actionWithTitle:@"Dismiss" style:UIAlertActionStyleCancel handler:nil]];
-        
-        [self presentViewController:alert animated:YES completion:nil];
-    }
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
@@ -163,7 +201,7 @@ static BOOL PastieController_isPresented = NO;
     self.window.hidden = YES;
 }
 
-#pragma mark Properties
+#pragma mark - Helper Methods
 
 - (NSString *)computedTitle {
     if (self.tableView.isEditing) {
@@ -172,6 +210,22 @@ static BOOL PastieController_isPresented = NO;
     }
     
     return @"Pastie";
+}
+
+- (PBDataSource *)dataSource {
+    return (PBDataSource *)self.tableView.dataSource;
+}
+
+#pragma mark - Properties
+
+- (void)setFilterText:(NSString *)filterText {
+    _filterText = filterText;
+    [self.pastieDataSource filterWithText:self.filterText];
+    [self.tableView reloadData];
+}
+
+- (BOOL)filtering {
+    return self.filterText.length > 0;
 }
 
 - (NSArray<UIBarButtonItem *> *)defaultRightBarButtonItems {
@@ -210,12 +264,15 @@ static BOOL PastieController_isPresented = NO;
 }
 
 - (NSString *)trashTitle {
+    NSString *itemType = self.type == PBDataTypeURLs ? @"URLs" : @"Pastes";
+    
     if (self.tableView.isEditing) {
-        return @"Delete Selected Pastes";
+        return [NSString stringWithFormat:@"Delete Selected %@", itemType];
     }
 
-    BOOL filtering = self.filterText.length;
-    return filtering ? @"Delete Search Results" : @"Delete All Pastes";
+    return self.filtering
+        ? [NSString stringWithFormat:@"Delete Search Results"]
+        : [NSString stringWithFormat:@"Delete All %@", itemType];
 }
 
 - (NSString *)trashButtonTitle {
@@ -223,8 +280,7 @@ static BOOL PastieController_isPresented = NO;
         return @"Delete Selected";
     }
 
-    BOOL filtering = self.filterText.length;
-    return filtering ? @"Delete Results" : @"Delete All";
+    return self.filtering ? @"Delete Results" : @"Delete All";
 }
 
 #pragma mark Buttons
@@ -240,46 +296,43 @@ static BOOL PastieController_isPresented = NO;
 }
 
 - (void)addPaste {
-    if (UIPasteboard.generalPasteboard.hasStrings) {
-        [self.pasteDB addStrings:UIPasteboard.generalPasteboard.strings callback:^(BOOL success) {
+    [self guardHasDataSource];
+    
+    [self.dataSource addFromClipboard:^(BOOL success) {
+        if (success) {
             [self reloadData:YES];
-        }];
-    }
-    else {
-        UIAlertController *alert = [UIAlertController
-            alertControllerWithTitle:@"Nothing to add!"
-            message:@"Try copying something first, then come back!"
-            preferredStyle:UIAlertControllerStyleAlert
-        ];
-        [alert addAction:[UIAlertAction actionWithTitle:@"Dismiss" style:UIAlertActionStyleCancel handler:nil]];
-        
-        [self presentViewController:alert animated:YES completion:nil];
-    }
+        } else {
+            [self presentModal:@"Nothing to Add"
+                message:@"Try copying something first, then come back!"
+            ];
+        }
+    }];
 }
 
 - (void)didPressTrash {
+    [self guardHasDataSource];
+    
     if (self.tableView.isEditing) {
         NSArray *selected = self.tableView.indexPathsForSelectedRows;
         NSArray *resultsToClear = [selected pastie_mapped:^id(NSIndexPath *obj, NSUInteger idx) {
-            return self.dataSource[obj.row];
+            return self.dataSource.data[obj.row];
         }];
         
+        // FIXME: disable this button if no items are selected
         if (!resultsToClear.count) {
             return;
         }
         
-        return [self promptToDeleteStrings:resultsToClear orClearAll:NO];
+        return [self promptToDeleteEntries:resultsToClear orClearAll:NO];
     }
     
-    BOOL filtering = self.filterText.length;
-    NSArray *resultsToClear = filtering ? self.dataSource : nil;
-    
-    [self promptToDeleteStrings:resultsToClear orClearAll:!resultsToClear];
+    NSArray *resultsToClear = self.filtering ? self.dataSource.data : nil;
+    [self promptToDeleteEntries:resultsToClear orClearAll:!resultsToClear];
 }
 
 /// Uses the button title properties declared above
-- (void)promptToDeleteStrings:(NSArray<NSString *> *)strings orClearAll:(BOOL)clearAllIfEmpty {
-    if (!strings.count && !clearAllIfEmpty) {
+- (void)promptToDeleteEntries:(NSArray *)items orClearAll:(BOOL)clearAllIfEmpty {
+    if (!items.count && !clearAllIfEmpty) {
         return;
     }
     
@@ -292,15 +345,19 @@ static BOOL PastieController_isPresented = NO;
     [alert addAction:[UIAlertAction actionWithTitle:self.trashButtonTitle
         style:UIAlertActionStyleDestructive
         handler:^(UIAlertAction *action) {
-            id completion = ^{
-                [self reloadData:YES];
-                [self endEditingTable];
+            id completion = ^(NSError *error) {
+                if (error) {
+                    [self presentModal:@"Error Deleting Pastes" message:error.localizedDescription];
+                } else {
+                    [self reloadData:YES];
+                    [self endEditingTable];
+                }
             };
         
-            if (strings.count) {
-                [self.pasteDB deleteStrings:strings callback:completion];
+            if (items.count) {
+                [self.pastieDataSource deleteItems:items completion:completion];
             } else {
-                [self.pasteDB clearAllHistory:completion];
+                [self.pastieDataSource deleteAllItems:completion];
             }
         }
     ]];
@@ -310,6 +367,8 @@ static BOOL PastieController_isPresented = NO;
 }
 
 - (void)didPressDestroy {
+    [self guardHasDataSource];
+    
     UIAlertController *alert = [UIAlertController
         alertControllerWithTitle:@"Destroy Database"
         message:@"Are you sure? This operation cannot be undone."
@@ -318,8 +377,10 @@ static BOOL PastieController_isPresented = NO;
     [alert addAction:[UIAlertAction actionWithTitle:@"Yes, Delete the Database"
         style:UIAlertActionStyleDestructive
         handler:^(UIAlertAction *action) {
-            [self.pasteDB destroyDatabase:^(NSError *error) {
-                UIAlertController(@"Error", error.localizedDescription);
+            [self.dataSource destroyDatabase:^(NSError *error) {
+                if (error) {
+                    [self presentModal:@"Error" message:error.localizedDescription];
+                }
             }];
         }
     ]];
@@ -329,83 +390,25 @@ static BOOL PastieController_isPresented = NO;
 }
 
 - (void)reloadData:(BOOL)animated {
-    [self softReloadData:^{
-        if (animated) {
-            // Preserve filter
-            [self filterDataSource:self.filterText];
-            // Animate in new rows
-            [self.tableView reloadSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:UITableViewRowAnimationAutomatic];
-        }
-        else {
-            // Reload data source and table view, preserving filter
-            self.filterText = self.filterText;
-        }
-    }];
+    [self.dataSource reloadDataWithTableView:self.tableView animated:animated completion:nil];
 }
 
-- (void)softReloadData:(void(^)(void))completion {
-    [self.pasteDB allStrings:^(NSMutableArray<NSString *> *strings) {
-        [self.pasteDB allImages:^(NSMutableArray<NSString *> *images) {
-            self.strings = strings;
-            self.images = images;
-            [self filterDataSource:self.filterText];
-            [self.tableView reloadData];
-            
-            if (completion) completion();
-        }];
-    }];
-    
-}
-
-- (void)setFilterText:(NSString *)filterText {
-    _filterText = filterText;
-    
-    [self filterDataSource:filterText];
-    [self.tableView reloadData];
-}
-
-/// Filter the data source using the current filter text, if any; does not reload the view
-- (void)filterDataSource:(NSString *)filterText {
-    if (filterText.length) {
-        // Filter by regex if the string starts with a slash
-        if ([filterText hasPrefix:@"/"]) {
-            NSString *regex = [filterText substringFromIndex:1];
-            self.dataSource = [self.strings pastie_filtered:^BOOL(NSString *obj, NSUInteger idx) {
-                return [obj pastie_matches:regex];
-            }];
-        }
-        // Ignore leading backslash to allow escaping a forward slash
-        else if ([filterText hasPrefix:@"\\"]) {
-            self.dataSource = [self.strings pastie_filtered:^BOOL(NSString *obj, NSUInteger idx) {
-                return [obj localizedCaseInsensitiveContainsString:[filterText substringFromIndex:1]];
-            }];
-        }
-        // Regular search
-        else {
-            self.dataSource = [self.strings pastie_filtered:^BOOL(NSString *obj, NSUInteger idx) {
-                return [obj localizedCaseInsensitiveContainsString:filterText];
-            }];
-        }
-    } else {
-        self.dataSource = self.strings;
-    }
-}
-
-#pragma mark Public
+#pragma mark - UI Actions
 
 /// For importing a pastie database
 - (BOOL)tryOpenDatabase:(NSURL *)fileURL {
+    [self guardHasDataSource];
+    
     if ([fileURL.pathExtension isEqualToString:@"db"]) {
         [self promptUserToImportDatabaseWith:^(BOOL shouldImport) {
             if (shouldImport) {
-                [self.pasteDB importDatabase:fileURL backupFirst:YES callback:^(NSError *error) {
+                [self.dataSource importDatabase:fileURL backupFirst:YES completion:^(NSError *error) {
                     if (error) {
                         [self presentModal:@"Error Importing Pastes" message:error.localizedDescription];
                     }
                     
                     [self reloadData:YES];
                 }];
-                [self reloadData:YES];
             }
         }];
         return YES;
@@ -433,7 +436,7 @@ static BOOL PastieController_isPresented = NO;
                           handler:^(UIAction *action) {
             [self shareFullDatabase];
         }],
-        [UIAction actionWithTitle:@"Select Pastes"
+        [UIAction actionWithTitle:@"Select Items"
                             image:[UIImage systemImageNamed:@"checkmark.circle"]
                        identifier:nil
                           handler:^(UIAction *action) {
@@ -450,8 +453,8 @@ static BOOL PastieController_isPresented = NO;
 }
 
 - (void)testing_fetchMetaTags {
-    if (self.dataSource.count > 0) {
-        NSString *firstURL = [self.dataSource pastie_firstWhere:^BOOL (NSString *s, NSUInteger idx) {
+    if (self.dataSource.data.count > 0) {
+        NSString *firstURL = [self.dataSource.data pastie_firstWhere:^BOOL (NSString *s, NSUInteger idx) {
             return ([s hasPrefix:@"http://"] || [s hasPrefix:@"https://"]) && [NSURL URLWithString:s];
         }];
         
@@ -473,7 +476,9 @@ static BOOL PastieController_isPresented = NO;
 }
 
 - (void)shareFullDatabase {
-    NSURL *filePath = [NSURL fileURLWithPath:self.pasteDB.databasePath];
+    [self guardHasDataSource];
+    
+    NSURL *filePath = [NSURL fileURLWithPath:self.dataSource.pasteDB.databasePath];
     UIActivityViewController *shareSheet = [[UIActivityViewController alloc]
         initWithActivityItems:@[filePath] applicationActivities:nil
     ];
@@ -553,9 +558,8 @@ static BOOL PastieController_isPresented = NO;
         return;
     }
     
-    id item = self.dataSource[indexPath.row];
-    self.pasteDB.lastCopy = item;
-    UIPasteboard.generalPasteboard.string = item;
+    id item = self.pastieDataSource.data[indexPath.row];
+    [self.pastieDataSource copyToClipboard:item];
     
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
     [self dismiss:YES];
@@ -567,47 +571,15 @@ static BOOL PastieController_isPresented = NO;
     }
 }
 
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
-    return YES;
-}
-
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle
-forRowAtIndexPath:(NSIndexPath *)indexPath {
-    NSString *item = self.dataSource[indexPath.row];
-    [self.dataSource removeObjectAtIndex:indexPath.row];
-    
-    [self.pasteDB deleteString:item callback:^{
-        [self softReloadData:^{
-            [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:0];
-        }];
-    }];
-}
-
 - (BOOL)tableView:(UITableView *)tableView shouldBeginMultipleSelectionInteractionAtIndexPath:(NSIndexPath *)indexPath {
     [self beginEditingTable];
     return YES;
 }
 
-#pragma mark UITableViewDataSource
-
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:kReuseID forIndexPath:indexPath];
-    cell.textLabel.numberOfLines = 4;
-    cell.textLabel.font = [UIFont preferredFontForTextStyle:UIFontTextStyleSubheadline];
-    cell.textLabel.text = [self.dataSource[indexPath.row]
-        stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet
-    ];
-    
-    return cell;
-}
-
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return self.dataSource.count;
-}
-
 #pragma mark Search Bar
 
 - (void)updateSearchResultsForSearchController:(UISearchController *)searchController {
+    // Automatically reloads the table view, no need to call reloadData
     self.filterText = searchController.searchBar.text;
 }
 

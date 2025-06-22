@@ -28,6 +28,9 @@ NS_ASSUME_NONNULL_BEGIN
 /// but it still might be an error even with a value of NO
 @property (nonatomic, readonly) BOOL isError;
 
+/// The error this result was created with, if any
+@property (nonatomic, readonly) NSError *error;
+
 /// A list of column names
 @property (nonatomic, readonly, nullable) NSArray<NSString *> *columns;
 /// A list of rows, where each element in the row corresponds
