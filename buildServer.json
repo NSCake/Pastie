@@ -1,0 +1,19 @@
+{
+	"name": "xcode build server",
+	"version": "0.2",
+	"bspVersion": "2.0",
+	"languages": [
+		"c",
+		"cpp",
+		"objective-c",
+		"objective-cpp",
+		"swift"
+	],
+	"argv": [
+		"/opt/homebrew/bin/xcode-build-server"
+	],
+	"workspace": "/Users/tanner/Repos/Tweaks/Pastie/Pastie.xcodeproj/project.xcworkspace",
+	"build_root": "/Users/tanner/Library/Developer/Xcode/DerivedData/Pastie-auibdpdutngtgtgzggwsxsihchoy",
+	"scheme": "Pastie",
+	"kind": "xcode"
+}
