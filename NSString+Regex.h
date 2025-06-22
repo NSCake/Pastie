@@ -11,5 +11,6 @@
 @interface NSString (Regex)
 
 - (BOOL)pastie_matches:(NSString *)regex;
+- (BOOL)pastie_matches:(NSString *)stringOrPattern regex:(BOOL)regex;
 
 @end

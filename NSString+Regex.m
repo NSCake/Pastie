@@ -11,7 +11,15 @@
 @implementation NSString (Regex)
 
 - (BOOL)pastie_matches:(NSString *)regex {
-    return [self rangeOfString:regex options:NSRegularExpressionSearch].location != NSNotFound;
+    return [self pastie_matches:regex regex:YES];
+}
+
+- (BOOL)pastie_matches:(NSString *)stringOrPattern regex:(BOOL)regex {
+    if (regex) {
+        return [self rangeOfString:stringOrPattern options:NSRegularExpressionSearch].location != NSNotFound;
+    }
+
+    return [self localizedCaseInsensitiveContainsString:stringOrPattern];
 }
 
 @end
